@@ -10,4 +10,7 @@ import org.example.demo.entity.Studservice;
 public class Studctl{
     @Autowired
     private Studservice ser;
+    //POST
+    @PostMapping("/add")
+    public Studentity addStudent(@RequestBody )
 }

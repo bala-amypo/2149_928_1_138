@@ -9,5 +9,5 @@ import org.example.demo.entity.Studservice;
 @RequestMapping("/student")
 public class Studctl{
     @Autowired
-    private Studser
+    private Studservice ser;
 }

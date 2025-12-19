@@ -3,21 +3,17 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "room_bookings")
-public class RoomBooking {
+@Table(name = "guests")
+public class Guest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String roomNumber;
-    private String status;
+    private String name;
+    private String email;
 
-    @ManyToOne
-    @JoinColumn(name = "guest_id")
-    private Guest guest;
-
-    public RoomBooking() {}
+    public Guest() {}
 
     public Long getId() {
         return id;
@@ -27,27 +23,19 @@ public class RoomBooking {
         this.id = id;
     }
 
-    public String getRoomNumber() {
-        return roomNumber;
+    public String getName() {
+        return name;
     }
 
-    public void setRoomNumber(String roomNumber) {
-        this.roomNumber = roomNumber;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getStatus() {
-        return status;
+    public String getEmail() {
+        return email;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Guest getGuest() {
-        return guest;
-    }
-
-    public void setGuest(Guest guest) {
-        this.guest = guest;
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

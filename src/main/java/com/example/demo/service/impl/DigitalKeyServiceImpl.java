@@ -1,29 +1,21 @@
-@Service
-public class DigitalKeyServiceImpl implements DigitalKeyService {
+package com.example.demo.controller;
 
-    private final DigitalKeyRepository repo;
-    private final RoomBookingRepository bookingRepo;
+import com.example.demo.model.DigitalKey;
+import com.example.demo.service.DigitalKeyService;
+import org.springframework.web.bind.annotation.*;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository repo, RoomBookingRepository bookingRepo) {
-        this.repo = repo;
-        this.bookingRepo = bookingRepo;
+@RestController
+@RequestMapping("/api/digital-keys")
+public class DigitalKeyController {
+
+    private final DigitalKeyService service;
+
+    public DigitalKeyController(DigitalKeyService service) {
+        this.service = service;
     }
 
-    @Override
-    public DigitalKey generateKey(Long bookingId) {
-        RoomBooking booking = bookingRepo.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-
-        if (!booking.getActive()) {
-            throw new IllegalStateException("inactive booking");
-        }
-
-        DigitalKey key = new DigitalKey();
-        key.setBooking(booking);
-        key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(LocalDateTime.now());
-        key.setExpiresAt(LocalDateTime.now().plusDays(1));
-
-        return repo.save(key);
+    @PostMapping("/{bookingId}")
+    public DigitalKey generate(@PathVariable Long bookingId) {
+        return service.generateKey(bookingId);
     }
 }

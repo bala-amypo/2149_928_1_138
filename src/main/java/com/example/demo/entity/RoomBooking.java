@@ -1,39 +1,53 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
+@Table(name = "room_bookings")
 public class RoomBooking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String roomNumber;
+    private String status;
+
     @ManyToOne
+    @JoinColumn(name = "guest_id")
     private Guest guest;
 
-    private String roomNumber;
+    public RoomBooking() {}
 
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
+    public Long getId() {
+        return id;
+    }
 
-    private Boolean active = true;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    @ManyToMany
-    private List<Guest> roommates;
+    public String getRoomNumber() {
+        return roomNumber;
+    }
 
-    // getters & setters
-    public Long getId() { return id; }
-    public Guest getGuest() { return guest; }
-    public void setGuest(Guest guest) { this.guest = guest; }
-    public String getRoomNumber() { return roomNumber; }
-    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
-    public LocalDate getCheckInDate() { return checkInDate; }
-    public void setCheckInDate(LocalDate checkInDate) { this.checkInDate = checkInDate; }
-    public LocalDate getCheckOutDate() { return checkOutDate; }
-    public void setCheckOutDate(LocalDate checkOutDate) { this.checkOutDate = checkOutDate; }
-    public Boolean getActive() { return active; }
-    public void setActive(Boolean active) { this.active = active; }
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Guest getGuest() {
+        return guest;
+    }
+
+    public void setGuest(Guest guest) {
+        this.guest = guest;
+    }
 }

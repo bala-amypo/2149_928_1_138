@@ -1,7 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "key_share_requests")
@@ -12,32 +11,58 @@ public class KeyShareRequest {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "digital_key_id")
+    private DigitalKey digitalKey;
+
+    @ManyToOne
+    @JoinColumn(name = "shared_by_id")
     private Guest sharedBy;
 
     @ManyToOne
+    @JoinColumn(name = "shared_with_id")
     private Guest sharedWith;
-
-    @ManyToOne
-    private DigitalKey digitalKey;
-
-    private LocalDateTime shareStart;
-    private LocalDateTime shareEnd;
 
     private String status;
 
-    @PrePersist
-    public void onCreate() {
-        this.status = "PENDING";
+    public KeyShareRequest() {}
+
+    public Long getId() {
+        return id;
     }
 
-    // getters & setters
-    public Long getId() { return id; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Guest getSharedBy() { return sharedBy; }
-    public Guest getSharedWith() { return sharedWith; }
+    public DigitalKey getDigitalKey() {
+        return digitalKey;
+    }
 
-    public LocalDateTime getShareStart() { return shareStart; }
-    public LocalDateTime getShareEnd() { return shareEnd; }
+    public void setDigitalKey(DigitalKey digitalKey) {
+        this.digitalKey = digitalKey;
+    }
 
-    public void setStatus(String status) { this.status = status; }
+    public Guest getSharedBy() {
+        return sharedBy;
+    }
+
+    public void setSharedBy(Guest sharedBy) {
+        this.sharedBy = sharedBy;
+    }
+
+    public Guest getSharedWith() {
+        return sharedWith;
+    }
+
+    public void setSharedWith(Guest sharedWith) {
+        this.sharedWith = sharedWith;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

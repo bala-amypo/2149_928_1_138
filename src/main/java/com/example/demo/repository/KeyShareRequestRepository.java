@@ -1,8 +1,22 @@
-// src/main/java/com/example/demo/repository/KeyShareRequestRepository.java
 package com.example.demo.repository;
 
-import com.example.demo.entity.KeyShareRequest;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.example.demo.model.KeyShareRequest;
+import org.springframework.stereotype.Repository;
 
-public interface KeyShareRequestRepository extends JpaRepository<KeyShareRequest, Long> {
+import java.util.ArrayList;
+import java.util.List;
+
+@Repository
+public class KeyShareRequestRepository {
+
+    private final List<KeyShareRequest> requests = new ArrayList<>();
+
+    public KeyShareRequest save(KeyShareRequest request) {
+        requests.add(request);
+        return request;
+    }
+
+    public List<KeyShareRequest> findAll() {
+        return requests;
+    }
 }

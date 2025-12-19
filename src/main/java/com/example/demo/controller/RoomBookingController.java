@@ -1,6 +1,14 @@
+// src/main/java/com/example/demo/controller/RoomBookingController.java
+package com.example.demo.controller;
+
+import com.example.demo.entity.RoomBooking;
+import com.example.demo.service.RoomBookingService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/bookings")
-@Tag(name = "Bookings")
+@RequestMapping("/api/room-bookings")
 public class RoomBookingController {
 
     private final RoomBookingService service;
@@ -24,13 +32,8 @@ public class RoomBookingController {
         return service.getBookingById(id);
     }
 
-    @GetMapping("/guest/{guestId}")
-    public List<RoomBooking> list(@PathVariable Long guestId) {
-        return service.getBookingsForGuest(guestId);
-    }
-
-    @PutMapping("/{id}/deactivate")
-    public void deactivate(@PathVariable Long id) {
-        service.deactivateBooking(id);
+    @GetMapping
+    public List<RoomBooking> getAll() {
+        return service.getAllBookings();
     }
 }

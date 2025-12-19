@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "digital_keys")
@@ -10,10 +11,23 @@ public class DigitalKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String keyValue;
 
-    public DigitalKey() {}
+    private LocalDateTime issuedAt;
+
+    private LocalDateTime expiresAt;
+
+    private boolean active = true;
+
+    @ManyToOne
+    @JoinColumn(name = "booking_id")
+    private RoomBooking booking;
+
+    @PrePersist
+    public void onCreate() {
+        this.issuedAt = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -29,5 +43,33 @@ public class DigitalKey {
 
     public void setKeyValue(String keyValue) {
         this.keyValue = keyValue;
+    }
+
+    public LocalDateTime getIssuedAt() {
+        return issuedAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public RoomBooking getBooking() {
+        return booking;
+    }
+
+    public void setBooking(RoomBooking booking) {
+        this.booking = booking;
     }
 }

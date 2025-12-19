@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "room_bookings")
@@ -11,13 +12,16 @@ public class RoomBooking {
     private Long id;
 
     private String roomNumber;
-    private String status;
+
+    private LocalDate checkInDate;
+
+    private LocalDate checkOutDate;
+
+    private boolean active = true;
 
     @ManyToOne
     @JoinColumn(name = "guest_id")
     private Guest guest;
-
-    public RoomBooking() {}
 
     public Long getId() {
         return id;
@@ -35,12 +39,28 @@ public class RoomBooking {
         this.roomNumber = roomNumber;
     }
 
-    public String getStatus() {
-        return status;
+    public LocalDate getCheckInDate() {
+        return checkInDate;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setCheckInDate(LocalDate checkInDate) {
+        this.checkInDate = checkInDate;
+    }
+
+    public LocalDate getCheckOutDate() {
+        return checkOutDate;
+    }
+
+    public void setCheckOutDate(LocalDate checkOutDate) {
+        this.checkOutDate = checkOutDate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Guest getGuest() {

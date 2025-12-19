@@ -1,54 +1,40 @@
-package com.example.demo.controller;
+package com.example.demo.model;
 
-import com.example.demo.model.KeyShareRequest;
-import com.example.demo.service.KeyShareRequestService;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+public class KeyShareRequest {
 
-import java.util.List;
+    private Long id;
+    private Long digitalKeyId;
+    private Long guestId;
 
-@RestController
-@RequestMapping("/api/key-share")
-@Tag(name = "Key Share Requests")
-public class KeyShareRequestController {
+    public KeyShareRequest() {}
 
-    private final KeyShareRequestService keyShareRequestService;
-
-    public KeyShareRequestController(KeyShareRequestService keyShareRequestService) {
-        this.keyShareRequestService = keyShareRequestService;
+    public KeyShareRequest(Long id, Long digitalKeyId, Long guestId) {
+        this.id = id;
+        this.digitalKeyId = digitalKeyId;
+        this.guestId = guestId;
     }
 
-    /**
-     * Create a key share request
-     */
-    @PostMapping
-    public KeyShareRequest create(@RequestBody KeyShareRequest request) {
-        return keyShareRequestService.createShareRequest(request);
+    public Long getId() {
+        return id;
     }
 
-    /**
-     * Approve / Reject a request
-     */
-    @PutMapping("/{id}/status")
-    public KeyShareRequest updateStatus(
-            @PathVariable Long id,
-            @RequestParam String status) {
-        return keyShareRequestService.updateStatus(id, status);
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    /**
-     * Requests received by a guest
-     */
-    @GetMapping("/received/{guestId}")
-    public List<KeyShareRequest> received(@PathVariable Long guestId) {
-        return keyShareRequestService.receivedRequests(guestId);
+    public Long getDigitalKeyId() {
+        return digitalKeyId;
     }
 
-    /**
-     * Requests sent by a guest
-     */
-    @GetMapping("/sent/{guestId}")
-    public List<KeyShareRequest> sent(@PathVariable Long guestId) {
-        return keyShareRequestService.sentRequests(guestId);
+    public void setDigitalKeyId(Long digitalKeyId) {
+        this.digitalKeyId = digitalKeyId;
+    }
+
+    public Long getGuestId() {
+        return guestId;
+    }
+
+    public void setGuestId(Long guestId) {
+        this.guestId = guestId;
     }
 }

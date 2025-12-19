@@ -1,45 +1,40 @@
-package com.example.demo.controller;
+package com.example.demo.model;
 
-import com.example.demo.model.Guest;
-import com.example.demo.service.GuestService;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+public class Guest {
 
-import java.util.List;
+    private Long id;
+    private String name;
+    private String email;
 
-@RestController
-@RequestMapping("/api/guests")
-@Tag(name = "Guests")
-public class GuestController {
+    public Guest() {}
 
-    private final GuestService guestService;
-
-    public GuestController(GuestService guestService) {
-        this.guestService = guestService;
+    public Guest(Long id, String name, String email) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
     }
 
-    @PostMapping
-    public Guest create(@RequestBody Guest guest) {
-        return guestService.createGuest(guest);
+    public Long getId() {
+        return id;
     }
 
-    @PutMapping("/{id}")
-    public Guest update(@PathVariable Long id, @RequestBody Guest guest) {
-        return guestService.updateGuest(id, guest);
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    @GetMapping("/{id}")
-    public Guest get(@PathVariable Long id) {
-        return guestService.getGuestById(id);
+    public String getName() {
+        return name;
     }
 
-    @GetMapping
-    public List<Guest> list() {
-        return guestService.getAllGuests();
+    public void setName(String name) {
+        this.name = name;
     }
 
-    @PutMapping("/{id}/deactivate")
-    public void deactivate(@PathVariable Long id) {
-        guestService.deactivateGuest(id);
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

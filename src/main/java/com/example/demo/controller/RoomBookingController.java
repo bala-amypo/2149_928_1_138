@@ -1,39 +1,40 @@
-// src/main/java/com/example/demo/controller/RoomBookingController.java
-package com.example.demo.controller;
+package com.example.demo.model;
 
-import com.example.demo.entity.RoomBooking;
-import com.example.demo.service.RoomBookingService;
-import org.springframework.web.bind.annotation.*;
+pblic class RoomBooking {
 
-import java.util.List;
+    private Long id;
+    private String roomNumber;
+    private String status;
 
-@RestController
-@RequestMapping("/api/room-bookings")
-public class RoomBookingController {
+    public RoomBooking() {}
 
-    private final RoomBookingService service;
-
-    public RoomBookingController(RoomBookingService service) {
-        this.service = service;
+    public RoomBooking(Long id, String roomNumber, String status) {
+        this.id = id;
+        this.roomNumber = roomNumber;
+        this.status = status;
     }
 
-    @PostMapping
-    public RoomBooking create(@RequestBody RoomBooking booking) {
-        return service.createBooking(booking);
+    public Long getId() {
+        return id;
     }
 
-    @PutMapping("/{id}")
-    public RoomBooking update(@PathVariable Long id, @RequestBody RoomBooking booking) {
-        return service.updateBooking(id, booking);
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    @GetMapping("/{id}")
-    public RoomBooking get(@PathVariable Long id) {
-        return service.getBookingById(id);
+    public String getRoomNumber() {
+        return roomNumber;
     }
 
-    @GetMapping
-    public List<RoomBooking> getAll() {
-        return service.getAllBookings();
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

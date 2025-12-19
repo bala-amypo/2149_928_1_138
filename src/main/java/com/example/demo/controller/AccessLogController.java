@@ -1,35 +1,30 @@
-package com.example.demo.controller;
+package com.example.demo.model;
 
-import com.example.demo.model.AccessLog;
-import com.example.demo.service.AccessLogService;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+public class AccessLog {
 
-import java.util.List;
+    private Long id;
+    private String action;
 
-@RestController
-@RequestMapping("/api/access-logs")
-@Tag(name = "Access Logs")
-public class AccessLogController {
+    public AccessLog() {}
 
-    private final AccessLogService accessLogService;
-
-    public AccessLogController(AccessLogService accessLogService) {
-        this.accessLogService = accessLogService;
+    public AccessLog(Long id, String action) {
+        this.id = id;
+        this.action = action;
     }
 
-    @PostMapping
-    public AccessLog createAccessLog(@RequestBody AccessLog accessLog) {
-        return accessLogService.createLog(accessLog);
+    public Long getId() {
+        return id;
     }
 
-    @GetMapping("/guest/{guestId}")
-    public List<AccessLog> getLogsByGuest(@PathVariable Long guestId) {
-        return accessLogService.getLogsByGuest(guestId);
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    @GetMapping("/key/{keyId}")
-    public List<AccessLog> getLogsByKey(@PathVariable Long keyId) {
-        return accessLogService.getLogsByKey(keyId);
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }

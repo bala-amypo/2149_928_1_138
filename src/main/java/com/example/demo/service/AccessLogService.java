@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface AccessLogService {
 
-    AccessLog createLog(AccessLog log);
+    AccessLog createLog(AccessLog accessLog);
 
     List<AccessLog> getLogsByGuest(Long guestId);
 

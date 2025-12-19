@@ -4,7 +4,6 @@ import com.example.demo.entity.AccessLog;
 import com.example.demo.repository.AccessLogRepository;
 import com.example.demo.service.AccessLogService;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -16,11 +15,11 @@ public class AccessLogServiceImpl implements AccessLogService {
         this.repository = repository;
     }
 
-    public AccessLog create(AccessLog log) {
+    public AccessLog createLog(AccessLog log) {
         return repository.save(log);
     }
 
-    public List<AccessLog> getAll() {
+    public List<AccessLog> getAllLogs() {
         return repository.findAll();
     }
 }

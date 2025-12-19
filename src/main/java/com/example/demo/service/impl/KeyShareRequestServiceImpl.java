@@ -4,7 +4,6 @@ import com.example.demo.entity.KeyShareRequest;
 import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.KeyShareRequestService;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -16,11 +15,15 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
         this.repository = repository;
     }
 
-    public KeyShareRequest create(KeyShareRequest request) {
+    public KeyShareRequest createRequest(KeyShareRequest request) {
         return repository.save(request);
     }
 
-    public List<KeyShareRequest> getAll() {
+    public KeyShareRequest getRequest(Long id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    public List<KeyShareRequest> getAllRequests() {
         return repository.findAll();
     }
 }

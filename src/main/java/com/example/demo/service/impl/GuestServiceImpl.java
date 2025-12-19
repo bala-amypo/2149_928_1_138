@@ -1,12 +1,10 @@
 package com.example.demo.service.impl;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.example.demo.entity.Guest;
 import com.example.demo.repository.GuestRepository;
 import com.example.demo.service.GuestService;
+import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 public class GuestServiceImpl implements GuestService {
@@ -17,29 +15,28 @@ public class GuestServiceImpl implements GuestService {
         this.repository = repository;
     }
 
-    @Override
-    public Guest create(Guest guest) {
+    public Guest createGuest(Guest guest) {
         return repository.save(guest);
     }
 
-    @Override
-    public Guest getById(Long id) {
-        return repository.findById(id).orElse(null);
-    }
-
-    @Override
-    public List<Guest> getAll() {
-        return repository.findAll();
-    }
-
-    @Override
-    public Guest update(Long id, Guest guest) {
+    public Guest updateGuest(Long id, Guest guest) {
         guest.setId(id);
         return repository.save(guest);
     }
 
-    @Override
-    public void delete(Long id) {
-        repository.deleteById(id);
+    public Guest getGuestById(Long id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    public List<Guest> getAllGuests() {
+        return repository.findAll();
+    }
+
+    public void deactivateGuest(Long id) {
+        Guest g = repository.findById(id).orElse(null);
+        if (g != null) {
+            g.setActive(false);
+            repository.save(g);
+        }
     }
 }

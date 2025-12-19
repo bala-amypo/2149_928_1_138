@@ -1,12 +1,10 @@
 package com.example.demo.service.impl;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.example.demo.entity.DigitalKey;
 import com.example.demo.repository.DigitalKeyRepository;
 import com.example.demo.service.DigitalKeyService;
+import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 public class DigitalKeyServiceImpl implements DigitalKeyService {
@@ -17,29 +15,23 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
         this.repository = repository;
     }
 
-    @Override
-    public DigitalKey create(DigitalKey digitalKey) {
-        return repository.save(digitalKey);
+    public DigitalKey createKey(DigitalKey key) {
+        return repository.save(key);
     }
 
-    @Override
-    public DigitalKey getById(Long id) {
+    public DigitalKey getKey(Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    @Override
-    public List<DigitalKey> getAll() {
+    public List<DigitalKey> getAllKeys() {
         return repository.findAll();
     }
 
-    @Override
-    public DigitalKey update(Long id, DigitalKey digitalKey) {
-        digitalKey.setId(id);
-        return repository.save(digitalKey);
-    }
-
-    @Override
-    public void delete(Long id) {
-        repository.deleteById(id);
+    public void deactivateKey(Long id) {
+        DigitalKey k = repository.findById(id).orElse(null);
+        if (k != null) {
+            k.setActive(false);
+            repository.save(k);
+        }
     }
 }

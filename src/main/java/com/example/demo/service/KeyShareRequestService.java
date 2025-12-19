@@ -4,6 +4,7 @@ import com.example.demo.entity.KeyShareRequest;
 import java.util.List;
 
 public interface KeyShareRequestService {
-    KeyShareRequest create(KeyShareRequest request);
-    List<KeyShareRequest> getAll();
+    KeyShareRequest createRequest(KeyShareRequest request);
+    KeyShareRequest getRequest(Long id);
+    List<KeyShareRequest> getAllRequests();
 }

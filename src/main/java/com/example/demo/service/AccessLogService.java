@@ -4,6 +4,6 @@ import com.example.demo.entity.AccessLog;
 import java.util.List;
 
 public interface AccessLogService {
-    AccessLog create(AccessLog log);
-    List<AccessLog> getAll();
+    AccessLog createLog(AccessLog log);
+    List<AccessLog> getAllLogs();
 }

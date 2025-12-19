@@ -1,17 +1,12 @@
 package com.example.demo.service;
 
-import java.util.List;
 import com.example.demo.entity.Guest;
+import java.util.List;
 
 public interface GuestService {
-
-    Guest create(Guest guest);
-
-    Guest getById(Long id);
-
-    List<Guest> getAll();
-
-    Guest update(Long id, Guest guest);
-
-    void delete(Long id);
+    Guest createGuest(Guest guest);
+    Guest updateGuest(Long id, Guest guest);
+    Guest getGuestById(Long id);
+    List<Guest> getAllGuests();
+    void deactivateGuest(Long id);
 }

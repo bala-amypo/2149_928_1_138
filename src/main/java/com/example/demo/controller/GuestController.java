@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Guest;
+import com.example.demo.entity.Guest;
 import com.example.demo.service.GuestService;
 import org.springframework.web.bind.annotation.*;
 

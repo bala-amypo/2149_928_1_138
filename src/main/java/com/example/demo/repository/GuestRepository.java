@@ -1,6 +1,6 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.Guest;
+import com.example.demo.entity.Guest;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;

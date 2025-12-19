@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.AccessLog;
+import com.example.demo.entity.AccessLog;
 import com.example.demo.service.AccessLogService;
 import org.springframework.web.bind.annotation.*;
 

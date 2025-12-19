@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.DigitalKey;
+import com.example.demo.entity.DigitalKey;
 import com.example.demo.service.DigitalKeyService;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,6 +1,6 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.DigitalKey;
+import com.example.demo.entity.DigitalKey;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;

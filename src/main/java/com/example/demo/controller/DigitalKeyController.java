@@ -3,11 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.entity.DigitalKey;
 import com.example.demo.service.DigitalKeyService;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/digital-keys")
+@RequestMapping("/api/digital-keys")
 public class DigitalKeyController {
 
     private final DigitalKeyService service;
@@ -18,11 +17,11 @@ public class DigitalKeyController {
 
     @PostMapping
     public DigitalKey create(@RequestBody DigitalKey key) {
-        return service.create(key);
+        return service.createKey(key);
     }
 
     @GetMapping
     public List<DigitalKey> getAll() {
-        return service.getAll();
+        return service.getAllKeys();
     }
 }

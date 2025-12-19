@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.AccessLog;
+import com.example.demo.entity.AccessLog;
 import com.example.demo.repository.AccessLogRepository;
 import com.example.demo.service.AccessLogService;
 import org.springframework.stereotype.Service;

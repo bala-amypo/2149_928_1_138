@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.model.DigitalKey;
+import com.example.demo.entity.DigitalKey;
 import java.util.List;
 
 public interface DigitalKeyService {

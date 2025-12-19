@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.model.Guest;
+import com.example.demo.entity.Guest;
 import java.util.List;
 
 public interface GuestService {

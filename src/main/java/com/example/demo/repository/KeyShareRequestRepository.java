@@ -1,6 +1,6 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.KeyShareRequest;
+import com.example.demo.entity.KeyShareRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;

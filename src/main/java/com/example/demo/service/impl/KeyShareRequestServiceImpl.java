@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.KeyShareRequest;
+import com.example.demo.entity.KeyShareRequest;
 import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.KeyShareRequestService;
 import org.springframework.stereotype.Service;

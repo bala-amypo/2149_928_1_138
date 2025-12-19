@@ -11,35 +11,35 @@ import com.example.demo.service.DigitalKeyService;
 @Service
 public class DigitalKeyServiceImpl implements DigitalKeyService {
 
-    private final DigitalKeyRepository digitalKeyRepository;
+    private final DigitalKeyRepository repository;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository digitalKeyRepository) {
-        this.digitalKeyRepository = digitalKeyRepository;
+    public DigitalKeyServiceImpl(DigitalKeyRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public DigitalKey createDigitalKey(DigitalKey digitalKey) {
-        return digitalKeyRepository.save(digitalKey);
+    public DigitalKey create(DigitalKey digitalKey) {
+        return repository.save(digitalKey);
     }
 
     @Override
-    public DigitalKey getDigitalKeyById(Long id) {
-        return digitalKeyRepository.findById(id).orElse(null);
+    public DigitalKey getById(Long id) {
+        return repository.findById(id).orElse(null);
     }
 
     @Override
-    public List<DigitalKey> getAllDigitalKeys() {
-        return digitalKeyRepository.findAll();
+    public List<DigitalKey> getAll() {
+        return repository.findAll();
     }
 
     @Override
-    public DigitalKey updateDigitalKey(Long id, DigitalKey digitalKey) {
+    public DigitalKey update(Long id, DigitalKey digitalKey) {
         digitalKey.setId(id);
-        return digitalKeyRepository.save(digitalKey);
+        return repository.save(digitalKey);
     }
 
     @Override
-    public void deleteDigitalKey(Long id) {
-        digitalKeyRepository.deleteById(id);
+    public void delete(Long id) {
+        repository.deleteById(id);
     }
 }

@@ -11,35 +11,35 @@ import com.example.demo.service.GuestService;
 @Service
 public class GuestServiceImpl implements GuestService {
 
-    private final GuestRepository guestRepository;
+    private final GuestRepository repository;
 
-    public GuestServiceImpl(GuestRepository guestRepository) {
-        this.guestRepository = guestRepository;
+    public GuestServiceImpl(GuestRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public Guest createGuest(Guest guest) {
-        return guestRepository.save(guest);
+    public Guest create(Guest guest) {
+        return repository.save(guest);
     }
 
     @Override
-    public Guest getGuestById(Long id) {
-        return guestRepository.findById(id).orElse(null);
+    public Guest getById(Long id) {
+        return repository.findById(id).orElse(null);
     }
 
     @Override
-    public List<Guest> getAllGuests() {
-        return guestRepository.findAll();
+    public List<Guest> getAll() {
+        return repository.findAll();
     }
 
     @Override
-    public Guest updateGuest(Long id, Guest guest) {
+    public Guest update(Long id, Guest guest) {
         guest.setId(id);
-        return guestRepository.save(guest);
+        return repository.save(guest);
     }
 
     @Override
-    public void deleteGuest(Long id) {
-        guestRepository.deleteById(id);
+    public void delete(Long id) {
+        repository.deleteById(id);
     }
 }

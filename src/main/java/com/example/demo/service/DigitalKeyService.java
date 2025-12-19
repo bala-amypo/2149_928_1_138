@@ -1,9 +1,17 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.DigitalKey;
 import java.util.List;
+import com.example.demo.entity.DigitalKey;
 
 public interface DigitalKeyService {
-    DigitalKey create(DigitalKey key);
+
+    DigitalKey create(DigitalKey digitalKey);
+
+    DigitalKey getById(Long id);
+
     List<DigitalKey> getAll();
+
+    DigitalKey update(Long id, DigitalKey digitalKey);
+
+    void delete(Long id);
 }

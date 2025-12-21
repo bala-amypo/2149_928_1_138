@@ -6,34 +6,34 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "access_logs")
-public class AccessLog {
+@Table(name = "digital_keys")
+public class DigitalKey {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Access time is required")
-    private LocalDateTime accessTime;
+    @NotBlank(message = "Key value is required")
+    @Column(unique = true)
+    private String keyValue;
 
-    @NotBlank(message = "Result is required")
-    private String result;
+    @NotNull(message = "Issued time is required")
+    private LocalDateTime issuedAt;
 
-    private String reason;
+    @NotNull(message = "Expiry time is required")
+    private LocalDateTime expiresAt;
 
-    @NotNull(message = "Digital key is required")
+    @NotNull(message = "Active status is required")
+    private boolean active = true;
+
+    @NotNull(message = "Room booking is required")
     @ManyToOne
-    @JoinColumn(name = "digital_key_id")
-    private DigitalKey digitalKey;
-
-    @NotNull(message = "Guest is required")
-    @ManyToOne
-    @JoinColumn(name = "guest_id")
-    private Guest guest;
+    @JoinColumn(name = "booking_id")
+    private RoomBooking booking;
 
     @PrePersist
-    public void onAccess() {
-        this.accessTime = LocalDateTime.now();
+    public void onCreate() {
+        this.issuedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -44,39 +44,39 @@ public class AccessLog {
         this.id = id;
     }
 
-    public LocalDateTime getAccessTime() {
-        return accessTime;
+    public String getKeyValue() {
+        return keyValue;
     }
 
-    public String getResult() {
-        return result;
+    public void setKeyValue(String keyValue) {
+        this.keyValue = keyValue;
     }
 
-    public void setResult(String result) {
-        this.result = result;
+    public LocalDateTime getIssuedAt() {
+        return issuedAt;
     }
 
-    public String getReason() {
-        return reason;
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 
-    public void setReason(String reason) {
-        this.reason = reason;
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
-    public DigitalKey getDigitalKey() {
-        return digitalKey;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setDigitalKey(DigitalKey digitalKey) {
-        this.digitalKey = digitalKey;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
-    public Guest getGuest() {
-        return guest;
+    public RoomBooking getBooking() {
+        return booking;
     }
 
-    public void setGuest(Guest guest) {
-        this.guest = guest;
+    public void setBooking(RoomBooking booking) {
+        this.booking = booking;
     }
 }

@@ -1,27 +1,40 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "room_bookings")
-public class RoomBooking {
+@Table(name = "access_logs")
+public class AccessLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String roomNumber;
+    @NotNull(message = "Access time is required")
+    private LocalDateTime accessTime;
 
-    private LocalDate checkInDate;
+    @NotBlank(message = "Result is required")
+    private String result;
 
-    private LocalDate checkOutDate;
+    private String reason;
 
-    private boolean active = true;
+    @NotNull(message = "Digital key is required")
+    @ManyToOne
+    @JoinColumn(name = "digital_key_id")
+    private DigitalKey digitalKey;
 
+    @NotNull(message = "Guest is required")
     @ManyToOne
     @JoinColumn(name = "guest_id")
     private Guest guest;
+
+    @PrePersist
+    public void onAccess() {
+        this.accessTime = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -31,36 +44,32 @@ public class RoomBooking {
         this.id = id;
     }
 
-    public String getRoomNumber() {
-        return roomNumber;
+    public LocalDateTime getAccessTime() {
+        return accessTime;
     }
 
-    public void setRoomNumber(String roomNumber) {
-        this.roomNumber = roomNumber;
+    public String getResult() {
+        return result;
     }
 
-    public LocalDate getCheckInDate() {
-        return checkInDate;
+    public void setResult(String result) {
+        this.result = result;
     }
 
-    public void setCheckInDate(LocalDate checkInDate) {
-        this.checkInDate = checkInDate;
+    public String getReason() {
+        return reason;
     }
 
-    public LocalDate getCheckOutDate() {
-        return checkOutDate;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
-    public void setCheckOutDate(LocalDate checkOutDate) {
-        this.checkOutDate = checkOutDate;
+    public DigitalKey getDigitalKey() {
+        return digitalKey;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setDigitalKey(DigitalKey digitalKey) {
+        this.digitalKey = digitalKey;
     }
 
     public Guest getGuest() {

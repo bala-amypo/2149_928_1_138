@@ -20,7 +20,7 @@ public class SwaggerConfig {
                         .version("1.0"))
                 // 🔥 THIS IS THE KEY FIX FOR AMYPO
                 .servers(List.of(
-                        new Server().url("/")
+                        new Server().url("https://9651.pro604cr.amypo.ai/")
                 ));
     }
 }

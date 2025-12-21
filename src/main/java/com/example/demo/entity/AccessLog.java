@@ -1,44 +1,40 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "guests")
-public class Guest {
+@Table(name = "access_logs")
+public class AccessLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Full name is required")
     @Column(nullable = false)
-    private String fullName;
+    private LocalDateTime accessTime;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email should be valid")
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    @NotBlank(message = "Result is required")
     @Column(nullable = false)
-    private String phoneNumber;
+    private String result;
 
-    @Column(nullable = false)
-    private boolean active = true;
+    private String reason;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @NotNull(message = "Digital key is required")
+    @ManyToOne
+    @JoinColumn(name = "digital_key_id", nullable = false)
+    private DigitalKey digitalKey;
 
-    public Guest() {}
+    @NotNull(message = "Guest is required")
+    @ManyToOne
+    @JoinColumn(name = "guest_id", nullable = false)
+    private Guest guest;
 
     @PrePersist
-    public void setCreationTime() {
-        this.createdAt = LocalDateTime.now();
+    public void onAccess() {
+        this.accessTime = LocalDateTime.now();
     }
 
     // -------- Getters & Setters --------
@@ -51,39 +47,39 @@ public class Guest {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public LocalDateTime getAccessTime() {
+        return accessTime;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public String getResult() {
+        return result;
     }
 
-    public String getEmail() {
-        return email;
+    public void setResult(String result) {
+        this.result = result;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public String getReason() {
+        return reason;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public DigitalKey getDigitalKey() {
+        return digitalKey;
     }
 
-    public boolean isActive() {
-        return active;
+    public void setDigitalKey(DigitalKey digitalKey) {
+        this.digitalKey = digitalKey;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public Guest getGuest() {
+        return guest;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public void setGuest(Guest guest) {
+        this.guest = guest;
     }
 }

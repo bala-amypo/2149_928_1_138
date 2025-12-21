@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -14,28 +13,33 @@ public class KeyShareRequest {
     private Long id;
 
     @NotNull(message = "Share start time is required")
+    @Column(nullable = false)
     private LocalDateTime shareStart;
 
     @NotNull(message = "Share end time is required")
+    @Column(nullable = false)
     private LocalDateTime shareEnd;
 
-    @NotBlank(message = "Status is required")
+    @NotNull(message = "Status is required")
+    @Column(nullable = false)
     private String status;
 
     @NotNull(message = "Digital key is required")
     @ManyToOne
-    @JoinColumn(name = "digital_key_id")
+    @JoinColumn(name = "digital_key_id", nullable = false)
     private DigitalKey digitalKey;
 
     @NotNull(message = "Shared by guest is required")
     @ManyToOne
-    @JoinColumn(name = "shared_by")
+    @JoinColumn(name = "shared_by", nullable = false)
     private Guest sharedBy;
 
     @NotNull(message = "Shared with guest is required")
     @ManyToOne
-    @JoinColumn(name = "shared_with")
+    @JoinColumn(name = "shared_with", nullable = false)
     private Guest sharedWith;
+
+    // -------- Getters & Setters --------
 
     public Long getId() {
         return id;

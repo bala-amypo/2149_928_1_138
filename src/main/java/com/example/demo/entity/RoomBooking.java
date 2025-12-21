@@ -14,21 +14,26 @@ public class RoomBooking {
     private Long id;
 
     @NotBlank(message = "Room number is required")
+    @Column(nullable = false)
     private String roomNumber;
 
     @NotNull(message = "Check-in date is required")
+    @Column(nullable = false)
     private LocalDate checkInDate;
 
     @NotNull(message = "Check-out date is required")
+    @Column(nullable = false)
     private LocalDate checkOutDate;
 
-    @NotNull(message = "Active status is required")
+    @Column(nullable = false)
     private boolean active = true;
 
     @NotNull(message = "Guest is required")
     @ManyToOne
-    @JoinColumn(name = "guest_id")
+    @JoinColumn(name = "guest_id", nullable = false)
     private Guest guest;
+
+    // -------- Getters & Setters --------
 
     public Long getId() {
         return id;

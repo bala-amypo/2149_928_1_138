@@ -14,27 +14,30 @@ public class DigitalKey {
     private Long id;
 
     @NotBlank(message = "Key value is required")
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String keyValue;
 
-    @NotNull(message = "Issued time is required")
+    @Column(nullable = false)
     private LocalDateTime issuedAt;
 
     @NotNull(message = "Expiry time is required")
+    @Column(nullable = false)
     private LocalDateTime expiresAt;
 
-    @NotNull(message = "Active status is required")
+    @Column(nullable = false)
     private boolean active = true;
 
-    @NotNull(message = "Room booking is required")
+    @NotNull(message = "Booking is required")
     @ManyToOne
-    @JoinColumn(name = "booking_id")
+    @JoinColumn(name = "booking_id", nullable = false)
     private RoomBooking booking;
 
     @PrePersist
     public void onCreate() {
         this.issuedAt = LocalDateTime.now();
     }
+
+    // -------- Getters & Setters --------
 
     public Long getId() {
         return id;

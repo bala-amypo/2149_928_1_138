@@ -44,6 +44,8 @@
             <scope>runtime</scope>
         </dependency>
 
+        
+
         <!-- Spring Security (REQUIRED for JWT) -->
        <dependency>
           <groupId>org.springdoc</groupId>

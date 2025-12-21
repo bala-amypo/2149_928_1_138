@@ -1,6 +1,8 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
@@ -11,14 +13,19 @@ public class RoomBooking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Room number is required")
     private String roomNumber;
 
+    @NotNull(message = "Check-in date is required")
     private LocalDate checkInDate;
 
+    @NotNull(message = "Check-out date is required")
     private LocalDate checkOutDate;
 
+    @NotNull(message = "Active status is required")
     private boolean active = true;
 
+    @NotNull(message = "Guest is required")
     @ManyToOne
     @JoinColumn(name = "guest_id")
     private Guest guest;

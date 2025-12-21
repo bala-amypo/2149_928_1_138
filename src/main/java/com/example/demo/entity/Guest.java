@@ -1,6 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,18 +15,28 @@ public class Guest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Full name is required")
     @Column(nullable = false)
     private String fullName;
 
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
     @Column(nullable = false, unique = true)
     private String email;
 
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+        regexp = "^[0-9]{10}$",
+        message = "Phone number must be 10 digits"
+    )
     @Column(nullable = false)
     private String phoneNumber;
 
+    @NotNull(message = "Active status is required")
     @Column(nullable = false)
     private boolean active = true;
 
+    @NotNull(message = "Created date is required")
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

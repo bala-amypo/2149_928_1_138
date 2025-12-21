@@ -1,34 +1,27 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "access_logs")
-public class AccessLog {
+@Table(name = "room_bookings")
+public class RoomBooking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime accessTime;
+    private String roomNumber;
 
-    private String result;
+    private LocalDate checkInDate;
 
-    private String reason;
+    private LocalDate checkOutDate;
 
-    @ManyToOne
-    @JoinColumn(name = "digital_key_id")
-    private DigitalKey digitalKey;
+    private boolean active = true;
 
     @ManyToOne
     @JoinColumn(name = "guest_id")
     private Guest guest;
-
-    @PrePersist
-    public void onAccess() {
-        this.accessTime = LocalDateTime.now();
-    }
 
     public Long getId() {
         return id;
@@ -38,32 +31,36 @@ public class AccessLog {
         this.id = id;
     }
 
-    public LocalDateTime getAccessTime() {
-        return accessTime;
+    public String getRoomNumber() {
+        return roomNumber;
     }
 
-    public String getResult() {
-        return result;
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
     }
 
-    public void setResult(String result) {
-        this.result = result;
+    public LocalDate getCheckInDate() {
+        return checkInDate;
     }
 
-    public String getReason() {
-        return reason;
+    public void setCheckInDate(LocalDate checkInDate) {
+        this.checkInDate = checkInDate;
     }
 
-    public void setReason(String reason) {
-        this.reason = reason;
+    public LocalDate getCheckOutDate() {
+        return checkOutDate;
     }
 
-    public DigitalKey getDigitalKey() {
-        return digitalKey;
+    public void setCheckOutDate(LocalDate checkOutDate) {
+        this.checkOutDate = checkOutDate;
     }
 
-    public void setDigitalKey(DigitalKey digitalKey) {
-        this.digitalKey = digitalKey;
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Guest getGuest() {

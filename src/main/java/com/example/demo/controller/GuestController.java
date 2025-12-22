@@ -1,42 +1,27 @@
-package com.example.demo.controller;
+package com.example.demo.exception;
 
-import com.example.demo.entity.Guest;
-import com.example.demo.service.GuestService;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestController
-@RequestMapping("/api/guests")
-public class GuestController {
+import java.util.HashMap;
+import java.util.Map;
 
-    private final GuestService service;
+@RestControllerAdvice
+public class GlobalExceptionHandler {
 
-    public GuestController(GuestService service) {
-        this.service = service;
-    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(
+            MethodArgumentNotValidException ex) {
 
-    @PostMapping
-    public Guest create(@RequestBody Guest guest) {
-        return service.createGuest(guest);
-    }
+        Map<String, String> errors = new HashMap<>();
 
-    @GetMapping("/{id}")
-    public Guest get(@PathVariable Long id) {
-        return service.getGuestById(id);
-    }
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
 
-    @GetMapping
-    public List<Guest> getAll() {
-        return service.getAllGuests();
-    }
-
-    @PutMapping("/{id}")
-    public Guest update(@PathVariable Long id, @RequestBody Guest guest) {
-        return service.updateGuest(id, guest);
-    }
-
-    @PutMapping("/{id}/deactivate")
-    public void deactivate(@PathVariable Long id) {
-        service.deactivateGuest(id);
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }

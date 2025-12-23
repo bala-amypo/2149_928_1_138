@@ -1,3 +1,9 @@
+package com.example.demo.controller;
+
+import com.example.demo.entity.RoomBooking;
+import com.example.demo.repository.RoomBookingRepository;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/bookings")
 public class RoomBookingController {
@@ -9,7 +15,7 @@ public class RoomBookingController {
     }
 
     @PostMapping
-    public RoomBooking createBooking(@RequestBody RoomBooking booking) {
+    public RoomBooking create(@RequestBody RoomBooking booking) {
         return repository.save(booking);
     }
 }

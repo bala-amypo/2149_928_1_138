@@ -1,6 +1,9 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,13 +14,14 @@ public class AccessLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
+    @PastOrPresent
     private LocalDateTime accessedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "digital_key_id")
+    @NotNull
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "digital_key_id", nullable = false)
     private DigitalKey digitalKey;
-
-
 
     public Long getId() {
         return id;

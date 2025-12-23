@@ -27,7 +27,7 @@ public class KeyShareRequest {
     @JoinColumn(name = "shared_with_id")
     private Guest sharedWith;
 
-    // ===== GETTERS & SETTERS =====
+   
 
     public Long getId() {
         return id;

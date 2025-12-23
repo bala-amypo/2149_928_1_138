@@ -2,8 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.KeyShareRequest;
 import com.example.demo.service.KeyShareRequestService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/key-share")
@@ -16,12 +16,7 @@ public class KeyShareRequestController {
     }
 
     @PostMapping
-    public KeyShareRequest create(@RequestBody KeyShareRequest request) {
-        return service.createRequest(request);
-    }
-
-    @GetMapping
-    public List<KeyShareRequest> getAll() {
-        return service.getAllRequests();
+    public KeyShareRequest create(@Valid @RequestBody KeyShareRequest request) {
+        return service.save(request);
     }
 }

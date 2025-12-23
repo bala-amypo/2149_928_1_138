@@ -1,6 +1,11 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Future;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,16 +16,24 @@ public class DigitalKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     private String keyValue;
+
+    @NotNull
+    @PastOrPresent
     private LocalDateTime issuedAt;
+
+    @NotNull
+    @Future
     private LocalDateTime expiresAt;
+
     private boolean active = true;
 
-    @ManyToOne
-    @JoinColumn(name = "booking_id")
+    @NotNull
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "booking_id", nullable = false)
     private RoomBooking booking;
 
-    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

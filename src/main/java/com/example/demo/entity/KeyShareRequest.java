@@ -1,6 +1,11 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,23 +16,31 @@ public class KeyShareRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
+    @FutureOrPresent
     private LocalDateTime shareStart;
+
+    @NotNull
+    @Future
     private LocalDateTime shareEnd;
+
+    @NotBlank
     private String status;
 
-    @ManyToOne
-    @JoinColumn(name = "digital_key_id")
+    @NotNull
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "digital_key_id", nullable = false)
     private DigitalKey digitalKey;
 
-    @ManyToOne
-    @JoinColumn(name = "shared_by_id")
+    @NotNull
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "shared_by_id", nullable = false)
     private Guest sharedBy;
 
-    @ManyToOne
-    @JoinColumn(name = "shared_with_id")
+    @NotNull
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "shared_with_id", nullable = false)
     private Guest sharedWith;
-
-   
 
     public Long getId() {
         return id;

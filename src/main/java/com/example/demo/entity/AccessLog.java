@@ -17,7 +17,7 @@ public class AccessLog {
     @JoinColumn(name = "digital_key_id")
     private DigitalKey digitalKey;
 
-    // ===== GETTERS & SETTERS =====
+
 
     public Long getId() {
         return id;

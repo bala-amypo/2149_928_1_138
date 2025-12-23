@@ -1,47 +1,41 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "guests")
-public class Guest {
+@Table(name = "room_bookings")
+public class RoomBooking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Full name is required")
-    private String fullName;
-
-    @NotBlank
-    @Email
-    private String email;
-
-    @NotBlank
-    @Pattern(regexp = "^[0-9]{10}$")
-    private String phoneNumber;
-
+    private String roomNumber;
+    private LocalDate checkInDate;
+    private LocalDate checkOutDate;
     private boolean active = true;
 
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+    @ManyToOne
+    @JoinColumn(name = "guest_id")
+    private Guest guest;
 
     // getters & setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPhoneNumber() { return phoneNumber; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public String getRoomNumber() { return roomNumber; }
+    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
+
+    public LocalDate getCheckInDate() { return checkInDate; }
+    public void setCheckInDate(LocalDate checkInDate) { this.checkInDate = checkInDate; }
+
+    public LocalDate getCheckOutDate() { return checkOutDate; }
+    public void setCheckOutDate(LocalDate checkOutDate) { this.checkOutDate = checkOutDate; }
+
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public Guest getGuest() { return guest; }
+    public void setGuest(Guest guest) { this.guest = guest; }
 }

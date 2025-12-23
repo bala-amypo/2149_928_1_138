@@ -1,28 +1,38 @@
-package com.example.demo.servlet;
+package com.example.demo.entity;
 
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.annotation.WebServlet;
-import java.io.IOException;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
-@WebServlet(urlPatterns = "/hello-servlet")
-public class HelloServlet extends HttpServlet {
+@Entity
+@Table(name = "guests")
+public class Guest {
 
-    private String message;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Override
-    public void init() {
-        message = "Hello Tomcat";
-    }
+    private String fullName;
+    private String email;
+    private String phoneNumber;
+    private boolean active = true;
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.getWriter().write("Hello from servlet");
-    }
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public String getMessage() {
-        return message;
-    }
+    // getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

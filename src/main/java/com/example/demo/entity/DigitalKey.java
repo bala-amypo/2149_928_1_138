@@ -1,35 +1,41 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "room_booking")
-public class RoomBooking {
+@Table(name = "digital_keys")
+public class DigitalKey {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String roomNumber;
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
+    private String keyValue;
+    private LocalDateTime issuedAt;
+    private LocalDateTime expiresAt;
     private boolean active = true;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    private Guest guest;
+    @ManyToOne
+    @JoinColumn(name = "booking_id")
+    private RoomBooking booking;
 
     // getters & setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getRoomNumber() { return roomNumber; }
-    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
-    public LocalDate getCheckInDate() { return checkInDate; }
-    public void setCheckInDate(LocalDate checkInDate) { this.checkInDate = checkInDate; }
-    public LocalDate getCheckOutDate() { return checkOutDate; }
-    public void setCheckOutDate(LocalDate checkOutDate) { this.checkOutDate = checkOutDate; }
+
+    public String getKeyValue() { return keyValue; }
+    public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
+
+    public LocalDateTime getIssuedAt() { return issuedAt; }
+    public void setIssuedAt(LocalDateTime issuedAt) { this.issuedAt = issuedAt; }
+
+    public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    public Guest getGuest() { return guest; }
-    public void setGuest(Guest guest) { this.guest = guest; }
+
+    public RoomBooking getBooking() { return booking; }
+    public void setBooking(RoomBooking booking) { this.booking = booking; }
 }

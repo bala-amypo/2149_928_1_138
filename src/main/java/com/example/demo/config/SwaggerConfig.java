@@ -18,7 +18,7 @@ public class SwaggerConfig {
                         .title("Drug Interaction Checker API")
                         .description("Swagger CRUD APIs")
                         .version("1.0"))
-                // 🔥 THIS IS THE KEY FIX FOR AMYPO
+                
                 .servers(List.of(
                         new Server().url("https://9163.408procr.amypo.ai/")
                 ));

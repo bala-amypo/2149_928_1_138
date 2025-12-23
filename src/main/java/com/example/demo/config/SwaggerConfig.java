@@ -15,7 +15,7 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Drug Interaction Checker API")
+                        .title("Hotel Digital Key share")
                         .description("Swagger CRUD APIs")
                         .version("1.0"))
                 

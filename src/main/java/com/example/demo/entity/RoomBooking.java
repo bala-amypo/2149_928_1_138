@@ -1,85 +1,47 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "room_bookings")
-public class RoomBooking {
+@Table(name = "guests")
+public class Guest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Room number is required")
-    @Column(nullable = false)
-    private String roomNumber;
+    @NotBlank(message = "Full name is required")
+    private String fullName;
 
-    @NotNull(message = "Check-in date is required")
-    @Column(nullable = false)
-    private LocalDate checkInDate;
+    @NotBlank
+    @Email
+    private String email;
 
-    @NotNull(message = "Check-out date is required")
-    @Column(nullable = false)
-    private LocalDate checkOutDate;
+    @NotBlank
+    @Pattern(regexp = "^[0-9]{10}$")
+    private String phoneNumber;
 
-    @Column(nullable = false)
     private boolean active = true;
 
-    @NotNull(message = "Guest is required")
-    @ManyToOne
-    @JoinColumn(name = "guest_id", nullable = false)
-    private Guest guest;
+    private LocalDateTime createdAt;
 
-    // -------- Getters & Setters --------
-
-    public Long getId() {
-        return id;
+    @PrePersist
+    void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getRoomNumber() {
-        return roomNumber;
-    }
-
-    public void setRoomNumber(String roomNumber) {
-        this.roomNumber = roomNumber;
-    }
-
-    public LocalDate getCheckInDate() {
-        return checkInDate;
-    }
-
-    public void setCheckInDate(LocalDate checkInDate) {
-        this.checkInDate = checkInDate;
-    }
-
-    public LocalDate getCheckOutDate() {
-        return checkOutDate;
-    }
-
-    public void setCheckOutDate(LocalDate checkOutDate) {
-        this.checkOutDate = checkOutDate;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public Guest getGuest() {
-        return guest;
-    }
-
-    public void setGuest(Guest guest) {
-        this.guest = guest;
-    }
+    // getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

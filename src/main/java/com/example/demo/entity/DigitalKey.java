@@ -1,85 +1,35 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "digital_keys")
-public class DigitalKey {
+@Table(name = "room_booking")
+public class RoomBooking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Key value is required")
-    @Column(unique = true, nullable = false)
-    private String keyValue;
-
-    @Column(nullable = false)
-    private LocalDateTime issuedAt;
-
-    @NotNull(message = "Expiry time is required")
-    @Column(nullable = false)
-    private LocalDateTime expiresAt;
-
-    @Column(nullable = false)
+    private String roomNumber;
+    private LocalDate checkInDate;
+    private LocalDate checkOutDate;
     private boolean active = true;
 
-    @NotNull(message = "Booking is required")
-    @ManyToOne
-    @JoinColumn(name = "booking_id", nullable = false)
-    private RoomBooking booking;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Guest guest;
 
-    @PrePersist
-    public void onCreate() {
-        this.issuedAt = LocalDateTime.now();
-    }
-
-    // -------- Getters & Setters --------
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getKeyValue() {
-        return keyValue;
-    }
-
-    public void setKeyValue(String keyValue) {
-        this.keyValue = keyValue;
-    }
-
-    public LocalDateTime getIssuedAt() {
-        return issuedAt;
-    }
-
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public RoomBooking getBooking() {
-        return booking;
-    }
-
-    public void setBooking(RoomBooking booking) {
-        this.booking = booking;
-    }
+    // getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getRoomNumber() { return roomNumber; }
+    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
+    public LocalDate getCheckInDate() { return checkInDate; }
+    public void setCheckInDate(LocalDate checkInDate) { this.checkInDate = checkInDate; }
+    public LocalDate getCheckOutDate() { return checkOutDate; }
+    public void setCheckOutDate(LocalDate checkOutDate) { this.checkOutDate = checkOutDate; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public Guest getGuest() { return guest; }
+    public void setGuest(Guest guest) { this.guest = guest; }
 }

@@ -1,74 +1,69 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-
-import java.time.Instant;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "access_logs")
 public class AccessLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(optional = false)
-    private DigitalKey digitalKey;
+  @ManyToOne
+  private DigitalKey digitalKey;
 
-    @ManyToOne(optional = false)
-    private Guest guest;
+  @ManyToOne
+  private Guest guest;
 
-    private Instant accessTime;
+  private Timestamp accessTime;
 
-    private String result;
+  private String result;
+  private String reason;
 
-    private String reason;
+  public AccessLog() {}
 
-    public Long getId() {
-        return id;
-    }
+  // getters and setters
+  public Long getId() {
+    return id;
+  }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public DigitalKey getDigitalKey() {
-        return digitalKey;
-    }
+  public DigitalKey getDigitalKey() {
+    return digitalKey;
+  }
+  public void setDigitalKey(DigitalKey digitalKey) {
+    this.digitalKey = digitalKey;
+  }
 
-    public void setDigitalKey(DigitalKey digitalKey) {
-        this.digitalKey = digitalKey;
-    }
+  public Guest getGuest() {
+    return guest;
+  }
+  public void setGuest(Guest guest) {
+    this.guest = guest;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public Timestamp getAccessTime() {
+    return accessTime;
+  }
+  public void setAccessTime(Timestamp accessTime) {
+    this.accessTime = accessTime;
+  }
 
-    public Guest getGuest() {
-        return guest;
-    }
+  public String getResult() {
+    return result;
+  }
+  public void setResult(String result) {
+    this.result = result;
+  }
 
-    public void setGuest(Guest guest) {
-        this.guest = guest;
-    }
-
-    public Instant getAccessTime() {
-        return accessTime;
-    }
-
-    public void setAccessTime(Instant accessTime) {
-        this.accessTime = accessTime;
-    }
-
-    public String getResult() {
-        return result;
-    }
-
-    public void setResult(String result) {
-        this.result = result;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
+  public String getReason() {
+    return reason;
+  }
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
 }

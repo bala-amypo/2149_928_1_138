@@ -14,7 +14,4 @@ public interface GuestService {
     List<Guest> getAllGuests();
 
     void deactivateGuest(Long id);
-
-    // ✅ ADD THIS
-    boolean existsByEmail(String email);
 }

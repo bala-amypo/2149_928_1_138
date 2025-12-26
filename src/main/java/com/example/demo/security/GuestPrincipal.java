@@ -16,20 +16,9 @@ public class GuestPrincipal implements UserDetails {
         this.guest = guest;
     }
 
-    public Long getId() {
-        return guest.getId();
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String role = guest.getRole();
-
-        // 🔐 Ensure Spring Security role format
-        if (!role.startsWith("ROLE_")) {
-            role = "ROLE_" + role;
-        }
-
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(guest.getRole()));
     }
 
     @Override
@@ -39,7 +28,7 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return guest.getEmail(); // email-based login
+        return guest.getEmail();
     }
 
     @Override
@@ -49,7 +38,7 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return guest.isActive();
+        return true;
     }
 
     @Override
@@ -59,6 +48,12 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return guest.isVerified();
+        // ✅ FIX HERE
+        return Boolean.TRUE.equals(guest.getActive());
+    }
+
+    // ✅ OPTIONAL helper (safe usage)
+    public boolean isVerified() {
+        return Boolean.TRUE.equals(guest.getVerified());
     }
 }

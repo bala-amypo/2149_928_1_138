@@ -1,7 +1,6 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
 
 @Entity
@@ -22,12 +21,11 @@ public class KeyShareRequest {
     private Guest sharedWith;
 
     private Instant shareStart;
-
     private Instant shareEnd;
 
+    // ✅ ENUM — NOT STRING
     @Enumerated(EnumType.STRING)
     private ShareStatus status;
-
 
     private Instant createdAt;
 
@@ -35,9 +33,11 @@ public class KeyShareRequest {
     protected void onCreate() {
         this.createdAt = Instant.now();
         if (this.status == null) {
-            this.status = ShareStatus.PENDING;
+            this.status = ShareStatus.PENDING; // ✅ enum, not string
         }
     }
+
+    // ===== GETTERS & SETTERS =====
 
     public Long getId() {
         return id;
@@ -49,10 +49,6 @@ public class KeyShareRequest {
 
     public void setDigitalKey(DigitalKey digitalKey) {
         this.digitalKey = digitalKey;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Guest getSharedBy() {
@@ -87,15 +83,15 @@ public class KeyShareRequest {
         this.shareEnd = shareEnd;
     }
 
-    public String getStatus() {
+    public ShareStatus getStatus() {
         return status;
+    }
+
+    public void setStatus(ShareStatus status) {
+        this.status = status;
     }
 
     public Instant getCreatedAt() {
         return createdAt;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

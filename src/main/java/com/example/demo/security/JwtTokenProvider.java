@@ -26,37 +26,42 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // ===================== REQUIRED BY TEST =====================
-
-    // ✅ REQUIRED SIGNATURE
+    // =====================================================
+    // ✅ REQUIRED METHOD (USED BY AuthController)
+    // =====================================================
     public String generateToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return generateTokenFromUser(userDetails);
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
+
+        return buildToken(userDetails);
     }
 
-    // ===================== INTERNAL TOKEN CREATION =====================
+    // =====================================================
+    // 🔒 INTERNAL TOKEN BUILDER (SINGLE SOURCE OF TRUTH)
+    // =====================================================
+    private String buildToken(UserDetails userDetails) {
 
-    private String generateTokenFromUser(UserDetails userDetails) {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .setIssuedAt(new Date())
+                .setExpiration(
+                        new Date(System.currentTimeMillis() + jwtExpiration)
+                )
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // ===================== VALIDATION =====================
-
+    // =====================================================
+    // 🔍 VALIDATION & EXTRACTION
+    // =====================================================
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return extractUsername(token).equals(userDetails.getUsername())
+                && !isTokenExpired(token);
     }
-
-    // ===================== HELPERS =====================
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
@@ -66,12 +71,16 @@ public class JwtTokenProvider {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = Jwts.parserBuilder()
+    private <T> T extractClaim(
+            String token,
+            Function<Claims, T> claimsResolver
+    ) {
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+
         return claimsResolver.apply(claims);
     }
 }

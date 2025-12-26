@@ -1,77 +1,69 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-
-import java.time.Instant;
+import java.sql.Timestamp;
 
 @Entity
-@Table(
-        name = "digital_keys",
-        uniqueConstraints = @UniqueConstraint(columnNames = "keyValue")
-)
+@Table(name = "digital_keys", uniqueConstraints = @UniqueConstraint(columnNames = "keyValue"))
 public class DigitalKey {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(optional = false)
-    private RoomBooking booking;
+  @ManyToOne
+  private RoomBooking booking;
 
-    @Column(nullable = false, unique = true)
-    private String keyValue;
+  @Column(unique = true)
+  private String keyValue;
 
-    private Instant issuedAt;
+  private Timestamp issuedAt;
+  private Timestamp expiresAt;
 
-    private Instant expiresAt;
+  private Boolean active = true;
 
-    private boolean active = true;
+  public DigitalKey() {}
 
-    public Long getId() {
-        return id;
-    }
+  // getters and setters
+  public Long getId() {
+    return id;
+  }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public RoomBooking getBooking() {
-        return booking;
-    }
+  public RoomBooking getBooking() {
+    return booking;
+  }
+  public void setBooking(RoomBooking booking) {
+    this.booking = booking;
+  }
 
-    public void setBooking(RoomBooking booking) {
-        this.booking = booking;
-    }
+  public String getKeyValue() {
+    return keyValue;
+  }
+  public void setKeyValue(String keyValue) {
+    this.keyValue = keyValue;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public Timestamp getIssuedAt() {
+    return issuedAt;
+  }
+  public void setIssuedAt(Timestamp issuedAt) {
+    this.issuedAt = issuedAt;
+  }
 
-    public String getKeyValue() {
-        return keyValue;
-    }
-    
-    public void setKeyValue(String keyValue) {
-        this.keyValue = keyValue;
-    }
-    
-    public Instant getIssuedAt() {
-        return issuedAt;
-    }
-    
-    public void setIssuedAt(Instant issuedAt) {
-        this.issuedAt = issuedAt;
-    }
-    
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
-    
-    public void setExpiresAt(Instant expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-    
-    public boolean isActive() {
-        return active;
-    }
-    
-    public void setActive(boolean active) {
-        this.active = active;
-    }
+  public Timestamp getExpiresAt() {
+    return expiresAt;
+  }
+  public void setExpiresAt(Timestamp expiresAt) {
+    this.expiresAt = expiresAt;
+  }
+
+  public Boolean getActive() {
+    return active;
+  }
+  public void setActive(Boolean active) {
+    this.active = active;
+  }
 }

@@ -15,13 +15,7 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ Constructor used by TESTS
-    public GuestServiceImpl(GuestRepository guestRepository) {
-        this.guestRepository = guestRepository;
-        this.passwordEncoder = null;
-    }
-
-    // ✅ Constructor used by SPRING at runtime
+    // ✅ SINGLE constructor (required by Spring + portal tests)
     public GuestServiceImpl(GuestRepository guestRepository,
                             PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
@@ -31,13 +25,28 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest createGuest(Guest guest) {
 
-        if (guestRepository.existsByEmail(guest.getEmail())) {
-            throw new IllegalArgumentException("Email already");
+        if (guest == null) {
+            throw new IllegalArgumentException("Guest cannot be null");
         }
 
-        // ✅ Encode password only when encoder exists
-        if (passwordEncoder != null) {
-            guest.setPassword(passwordEncoder.encode(guest.getPassword()));
+        if (guestRepository.existsByEmail(guest.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        // ✅ ALWAYS encode password
+        guest.setPassword(passwordEncoder.encode(guest.getPassword()));
+
+        // ✅ Portal-required defaults
+        if (guest.getActive() == null) {
+            guest.setActive(true);
+        }
+
+        if (guest.getVerified() == null) {
+            guest.setVerified(false);
+        }
+
+        if (guest.getRole() == null) {
+            guest.setRole("ROLE_USER");
         }
 
         return guestRepository.save(guest);
@@ -47,7 +56,7 @@ public class GuestServiceImpl implements GuestService {
     public Guest getGuestById(Long id) {
         return guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found " + id));
+                        new ResourceNotFoundException("Guest not found with id: " + id));
     }
 
     @Override
@@ -58,21 +67,41 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest updateGuest(Long id, Guest update) {
 
-        Guest g = getGuestById(id);
+        Guest existing = guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found with id: " + id));
 
-        g.setFullName(update.getFullName());
-        g.setPhoneNumber(update.getPhoneNumber());
-        g.setVerified(update.getVerified());
-        g.setActive(update.getActive());
-        g.setRole(update.getRole());
+        // ✅ Update ONLY non-null fields
+        if (update.getFullName() != null) {
+            existing.setFullName(update.getFullName());
+        }
 
-        return guestRepository.save(g);
+        if (update.getPhoneNumber() != null) {
+            existing.setPhoneNumber(update.getPhoneNumber());
+        }
+
+        if (update.getVerified() != null) {
+            existing.setVerified(update.getVerified());
+        }
+
+        if (update.getActive() != null) {
+            existing.setActive(update.getActive());
+        }
+
+        if (update.getRole() != null) {
+            existing.setRole(update.getRole());
+        }
+
+        return guestRepository.save(existing);
     }
 
     @Override
     public void deactivateGuest(Long id) {
-        Guest g = getGuestById(id);
-        g.setActive(false);
-        guestRepository.save(g);
+        Guest guest = guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found with id: " + id));
+
+        guest.setActive(false);
+        guestRepository.save(guest);
     }
 }

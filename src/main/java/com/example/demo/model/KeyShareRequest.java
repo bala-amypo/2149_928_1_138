@@ -1,97 +1,80 @@
-package com.example.demo.model;
+package com.example.demo.service.impl;
 
-import jakarta.persistence.*;
-import java.time.Instant;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.DigitalKey;
+import com.example.demo.model.Guest;
+import com.example.demo.model.KeyShareRequest;
+import com.example.demo.model.ShareStatus;
+import com.example.demo.repository.KeyShareRequestRepository;
+import com.example.demo.service.KeyShareRequestService;
+import org.springframework.stereotype.Service;
 
-@Entity
-@Table(name = "key_share_requests")
-public class KeyShareRequest {
+import java.util.List;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Service
+public class KeyShareRequestServiceImpl implements KeyShareRequestService {
 
-    @ManyToOne(optional = false)
-    private DigitalKey digitalKey;
+    private final KeyShareRequestRepository repository;
 
-    @ManyToOne(optional = false)
-    private Guest sharedBy;
+    public KeyShareRequestServiceImpl(KeyShareRequestRepository repository) {
+        this.repository = repository;
+    }
 
-    @ManyToOne(optional = false)
-    private Guest sharedWith;
+    // ================= CREATE SHARE REQUEST =================
+    @Override
+    public KeyShareRequest createShareRequest(KeyShareRequest request) {
 
-    private Instant shareStart;
-    private Instant shareEnd;
+        Guest from = request.getSharedBy();
+        Guest to = request.getSharedWith();
 
-    // ✅ ENUM — NOT STRING
-    @Enumerated(EnumType.STRING)
-    private ShareStatus status;
-
-    private Instant createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = Instant.now();
-        if (this.status == null) {
-            this.status = ShareStatus.PENDING; // ✅ enum, not string
+        if (from.getId().equals(to.getId())) {
+            throw new IllegalArgumentException("Cannot share key with self");
         }
+
+        if (!to.isVerified() || !to.isActive()) {
+            throw new IllegalStateException("Recipient not eligible");
+        }
+
+        if (request.getShareEnd().isBefore(request.getShareStart())) {
+            throw new IllegalArgumentException("Invalid share window");
+        }
+
+        DigitalKey key = request.getDigitalKey();
+        if (!key.isActive()) {
+            throw new IllegalStateException("Key not active");
+        }
+
+        // status defaults to PENDING via @PrePersist
+        return repository.save(request);
     }
 
-    // ===== GETTERS & SETTERS =====
+    // ================= UPDATE STATUS =================
+    @Override
+    public KeyShareRequest updateStatus(Long requestId, ShareStatus status) {
 
-    public Long getId() {
-        return id;
+        KeyShareRequest request = getShareRequestById(requestId);
+
+        // ✅ ENUM SAFE
+        request.setStatus(status);
+
+        return repository.save(request);
     }
 
-    public DigitalKey getDigitalKey() {
-        return digitalKey;
+    // ================= GET BY ID =================
+    @Override
+    public KeyShareRequest getShareRequestById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Share request not found"));
     }
 
-    public void setDigitalKey(DigitalKey digitalKey) {
-        this.digitalKey = digitalKey;
+    // ================= LISTS =================
+    @Override
+    public List<KeyShareRequest> getRequestsSharedBy(Long guestId) {
+        return repository.findBySharedById(guestId);
     }
 
-    public Guest getSharedBy() {
-        return sharedBy;
-    }
-
-    public void setSharedBy(Guest sharedBy) {
-        this.sharedBy = sharedBy;
-    }
-
-    public Guest getSharedWith() {
-        return sharedWith;
-    }
-
-    public void setSharedWith(Guest sharedWith) {
-        this.sharedWith = sharedWith;
-    }
-
-    public Instant getShareStart() {
-        return shareStart;
-    }
-
-    public void setShareStart(Instant shareStart) {
-        this.shareStart = shareStart;
-    }
-
-    public Instant getShareEnd() {
-        return shareEnd;
-    }
-
-    public void setShareEnd(Instant shareEnd) {
-        this.shareEnd = shareEnd;
-    }
-
-    public ShareStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ShareStatus status) {
-        this.status = status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
+    @Override
+    public List<KeyShareRequest> getRequestsSharedWith(Long guestId) {
+        return repository.findBySharedWithId(guestId);
     }
 }

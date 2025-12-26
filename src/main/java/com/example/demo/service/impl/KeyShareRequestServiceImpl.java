@@ -20,7 +20,7 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
         this.repository = repository;
     }
 
-    // ================= CREATE SHARE REQUEST =================
+    // ================= CREATE =================
     @Override
     public KeyShareRequest createShareRequest(KeyShareRequest request) {
 
@@ -44,30 +44,26 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
             throw new IllegalStateException("Key not active");
         }
 
-        // status defaults to PENDING via @PrePersist
+        // status defaults to PENDING
         return repository.save(request);
     }
 
     // ================= UPDATE STATUS =================
     @Override
     public KeyShareRequest updateStatus(Long requestId, ShareStatus status) {
-
         KeyShareRequest request = getShareRequestById(requestId);
-
-        // ✅ ENUM SAFE
         request.setStatus(status);
-
         return repository.save(request);
     }
 
-    // ================= GET BY ID =================
+    // ================= GET =================
     @Override
     public KeyShareRequest getShareRequestById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Share request not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Share request not found"));
     }
 
-    // ================= LISTS =================
     @Override
     public List<KeyShareRequest> getRequestsSharedBy(Long guestId) {
         return repository.findBySharedById(guestId);

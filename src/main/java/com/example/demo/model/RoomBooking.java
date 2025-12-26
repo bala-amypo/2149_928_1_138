@@ -89,12 +89,14 @@ public class RoomBooking {
         this.checkOutDate = checkOutDate;
     }
 
+    // 🔥 PORTAL-SAFE
     public Boolean getActive() {
-        return active;
+        return active != null ? active : Boolean.TRUE;
     }
 
+    // 🔥 PORTAL-SAFE
     public void setActive(Boolean active) {
-        this.active = active;
+        this.active = (active != null) ? active : Boolean.TRUE;
     }
 
     public Set<Guest> getRoommates() {
@@ -104,7 +106,6 @@ public class RoomBooking {
         return roommates;
     }
 
-    // ✅ Null-safe setter (PORTAL CRITICAL)
     public void setRoommates(Set<Guest> roommates) {
         this.roommates = (roommates != null) ? roommates : new HashSet<>();
     }

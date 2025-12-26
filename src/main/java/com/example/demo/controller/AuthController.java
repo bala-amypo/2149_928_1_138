@@ -38,6 +38,6 @@ public class AuthController {
 
         String token = jwtTokenProvider.generateToken(userDetails);
 
-        return ResponseEntity.ok(new JwtResponse(token));
+        return ResponseEntity.ok(new TokenResponse(token));
     }
 }

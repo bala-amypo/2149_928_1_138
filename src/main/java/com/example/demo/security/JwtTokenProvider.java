@@ -27,22 +27,28 @@ public class JwtTokenProvider {
     }
 
     // =====================================================
-    // ✅ REQUIRED METHOD (USED BY AuthController)
+    // ✅ REQUIRED BY TESTS & AuthController
     // =====================================================
     public String generateToken(Authentication authentication) {
         UserDetails userDetails =
                 (UserDetails) authentication.getPrincipal();
-
         return buildToken(userDetails);
     }
 
     // =====================================================
-    // 🔒 INTERNAL TOKEN BUILDER (SINGLE SOURCE OF TRUTH)
+    // ✅ SAFE OVERLOAD (prevents future mismatches)
+    // =====================================================
+    public String generateToken(UserDetails userDetails) {
+        return buildToken(userDetails);
+    }
+
+    // =====================================================
+    // 🔒 SINGLE TOKEN CREATION LOGIC
     // =====================================================
     private String buildToken(UserDetails userDetails) {
 
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
+                .setSubject(userDetails.getUsername()) // email
                 .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(System.currentTimeMillis() + jwtExpiration)

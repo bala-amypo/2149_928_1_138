@@ -25,7 +25,6 @@ public class KeyShareRequest {
     @ManyToOne
     private Guest sharedWith;
 
-    // ✅ Tests expect Instant
     private Instant shareStart;
     private Instant shareEnd;
 
@@ -33,7 +32,6 @@ public class KeyShareRequest {
 
     private Instant createdAt;
 
-    // ✅ Safe defaults even if service not used
     @PrePersist
     public void onCreate() {
         if (this.createdAt == null) {
@@ -106,5 +104,10 @@ public class KeyShareRequest {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    // ✅ REQUIRED for portal tests
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

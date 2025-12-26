@@ -36,11 +36,20 @@ public class AuthController {
                 )
         );
 
-        UserDetails userDetails =
-                (UserDetails) authentication.getPrincipal();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         String token = jwtTokenProvider.generateToken(userDetails);
 
-        return ResponseEntity.ok(new TokenResponse(token));
+        // Temporary values (until DB User entity is wired)
+        Long userId = 1L;
+        String email = userDetails.getUsername();
+        String role = userDetails.getAuthorities()
+                                 .iterator()
+                                 .next()
+                                 .getAuthority();
+
+        return ResponseEntity.ok(
+                new TokenResponse(token, userId, email, role)
+        );
     }
 }

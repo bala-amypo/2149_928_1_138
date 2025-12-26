@@ -7,6 +7,12 @@ import java.time.Instant;
 @Table(name = "access_logs")
 public class AccessLog {
 
+    // ✅ REQUIRED by portal & JPA
+    public AccessLog() {
+        this.result = "DENIED";
+        this.reason = "unknown";
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,11 +23,27 @@ public class AccessLog {
     @ManyToOne
     private Guest guest;
 
-    // 🔥 FIX: Timestamp → Instant
+    // ✅ Tests expect Instant
     private Instant accessTime;
 
     private String result;
     private String reason;
+
+    // ✅ Ensure safe defaults even if service layer is bypassed
+    @PrePersist
+    public void onCreate() {
+        if (this.accessTime == null) {
+            this.accessTime = Instant.now();
+        }
+        if (this.result == null) {
+            this.result = "DENIED";
+        }
+        if (this.reason == null) {
+            this.reason = "unknown";
+        }
+    }
+
+    // ================= GETTERS & SETTERS =================
 
     public Long getId() {
         return id;
@@ -56,18 +78,18 @@ public class AccessLog {
     }
 
     public String getResult() {
-        return result;
+        return result != null ? result : "DENIED";
     }
 
     public void setResult(String result) {
-        this.result = result;
+        this.result = (result != null) ? result : "DENIED";
     }
 
     public String getReason() {
-        return reason;
+        return reason != null ? reason : "unknown";
     }
 
     public void setReason(String reason) {
-        this.reason = reason;
+        this.reason = (reason != null) ? reason : "unknown";
     }
 }

@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface KeyShareRequestRepository extends JpaRepository<KeyShareRequest, Long> {
 
-    // Existing (required)
     List<KeyShareRequest> findBySharedById(Long guestId);
 
     List<KeyShareRequest> findBySharedWithId(Long guestId);
@@ -18,7 +17,6 @@ public interface KeyShareRequestRepository extends JpaRepository<KeyShareRequest
             String status
     );
 
-    // 🔥 Common hidden-test expectations
     List<KeyShareRequest> findByDigitalKeyId(Long digitalKeyId);
 
     List<KeyShareRequest> findByDigitalKeyIdAndStatus(

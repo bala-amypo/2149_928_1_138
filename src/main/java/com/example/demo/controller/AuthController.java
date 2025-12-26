@@ -1,101 +1,46 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.LoginRequest;
-import com.example.demo.dto.RegisterRequest;
-import com.example.demo.dto.TokenResponse;
 import com.example.demo.model.Guest;
 import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.service.GuestService;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
+    private final GuestService guestService;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final GuestService guestService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(
-            AuthenticationManager authenticationManager,
-            JwtTokenProvider jwtTokenProvider,
-            GuestService guestService
-    ) {
+    public AuthController(GuestService guestService,
+                          AuthenticationManager authenticationManager,
+                          JwtTokenProvider jwtTokenProvider,
+                          PasswordEncoder passwordEncoder) {
+        this.guestService = guestService;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.guestService = guestService;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // ================= REGISTER =================
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-
-        if (guestService.existsByEmail(request.getEmail())) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Email already exists");
-        }
-
-        Guest guest = new Guest();
-        guest.setFullName(request.getFullName());
-        guest.setEmail(request.getEmail());
-        guest.setPhoneNumber(request.getPhoneNumber());
-
-        // ✅ RAW password (any length allowed)
-        guest.setPassword(request.getPassword());
-
-        guest.setRole("ROLE_USER");
-        guest.setVerified(true);
-        guest.setActive(true);
-
-        // ✅ password encoding happens INSIDE service
+    public String register(@RequestBody Guest guest) {
         guestService.createGuest(guest);
-
-        return ResponseEntity.ok("User registered successfully");
+        return "Registered";
     }
 
-    // ================= LOGIN =================
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    )
-            );
-
-            // ✅ Correct JWT generation
-            String token = jwtTokenProvider.generateToken(authentication);
-
-            UserDetails userDetails =
-                    (UserDetails) authentication.getPrincipal();
-
-            return ResponseEntity.ok(
-                    new TokenResponse(
-                            token,
-                            1L, // placeholder (can replace with real ID later)
-                            userDetails.getUsername(),
-                            userDetails.getAuthorities()
-                                       .iterator()
-                                       .next()
-                                       .getAuthority()
-                    )
-            );
-
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid email or password");
-        }
+    public String login(@RequestBody Guest guest) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        guest.getEmail(),
+                        guest.getPassword()
+                )
+        );
+        return jwtTokenProvider.generateToken(auth);
     }
 }

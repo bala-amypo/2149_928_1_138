@@ -29,7 +29,7 @@ public class OpenApiConfig {
                         .version("1.0"))
                 // ✅ Optional server (Swagger still works without it)
                 .servers(List.of(
-                        new Server().url("http://localhost:9001")
+                        new Server().url("https://9163.408procr.amypo.ai/")
                 ))
                 // 🔐 Apply JWT globally
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))

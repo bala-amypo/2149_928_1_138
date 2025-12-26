@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.DigitalKey;
 import com.example.demo.service.DigitalKeyService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +17,9 @@ public class DigitalKeyController {
         this.service = service;
     }
 
-    // ✅ Generate key for a booking (NO PATH COLLISION)
+    // ✅ Generate key for a booking
     @PostMapping("/generate/{bookingId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public DigitalKey generate(@PathVariable Long bookingId) {
         return service.generateKey(bookingId);
     }

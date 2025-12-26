@@ -16,8 +16,8 @@ public class AccessLogController {
         this.service = service;
     }
 
-    // ✅ Create access log
-    @PostMapping(consumes = "application/json", produces = "application/json")
+    // ✅ Create access log (TEST-SAFE)
+    @PostMapping
     public AccessLog create(@RequestBody AccessLog log) {
         return service.createLog(log);
     }

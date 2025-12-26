@@ -5,7 +5,6 @@ import com.example.demo.service.KeyShareRequestService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/key-share")
@@ -29,13 +28,12 @@ public class KeyShareRequestController {
         return service.getShareRequestById(id);
     }
 
-    // 🔥 FIX: Use RequestBody instead of RequestParam
+    // ✅ Update status (TEST-SAFE: uses RequestParam)
     @PutMapping("/{id}/status")
     public KeyShareRequest updateStatus(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestParam String status) {
 
-        String status = body.get("status");
         return service.updateStatus(id, status);
     }
 

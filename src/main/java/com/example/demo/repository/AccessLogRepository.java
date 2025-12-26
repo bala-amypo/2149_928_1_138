@@ -5,10 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.*;
 
-public interface GuestRepository extends JpaRepository<Guest, Long> {
-    Optional<Guest> findByEmail(String email);
-    boolean existsByEmail(String email);
-}
+
 
 public interface RoomBookingRepository extends JpaRepository<RoomBooking, Long> {
     List<RoomBooking> findByGuestId(Long guestId);

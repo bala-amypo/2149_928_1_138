@@ -1,64 +1,71 @@
-package com.example.demo.security;
+package com.example.demo.service.impl;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Guest;
+import com.example.demo.repository.GuestRepository;
+import com.example.demo.service.GuestService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Service;
 
-@Configuration
-public class SecurityConfig {
+import java.util.List;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService customUserDetailsService;
+@Service
+public class GuestServiceImpl implements GuestService {
 
-    public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter,
-            CustomUserDetailsService customUserDetailsService
+    private final GuestRepository guestRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public GuestServiceImpl(
+            GuestRepository guestRepository,
+            PasswordEncoder passwordEncoder
     ) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.customUserDetailsService = customUserDetailsService;
+        this.guestRepository = guestRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Override
+    public Guest createGuest(Guest guest) {
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/api/auth/**",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(
-                    jwtAuthenticationFilter,
-                    UsernamePasswordAuthenticationFilter.class
-            );
+        if (guestRepository.existsByEmail(guest.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
 
-        return http.build();
+        // ✅ Encode password ONLY here
+        guest.setPassword(passwordEncoder.encode(guest.getPassword()));
+
+        return guestRepository.save(guest);
     }
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(customUserDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
+    @Override
+    public Guest updateGuest(Long id, Guest guest) {
+        Guest existing = getGuestById(id);
+        existing.setFullName(guest.getFullName());
+        existing.setPhoneNumber(guest.getPhoneNumber());
+        existing.setVerified(guest.isVerified());
+        existing.setRole(guest.getRole());
+        return guestRepository.save(existing);
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    @Override
+    public Guest getGuestById(Long id) {
+        return guestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
+    }
+
+    @Override
+    public List<Guest> getAllGuests() {
+        return guestRepository.findAll();
+    }
+
+    @Override
+    public void deactivateGuest(Long id) {
+        Guest guest = getGuestById(id);
+        guest.setActive(false);
+        guestRepository.save(guest);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return guestRepository.existsByEmail(email);
     }
 }

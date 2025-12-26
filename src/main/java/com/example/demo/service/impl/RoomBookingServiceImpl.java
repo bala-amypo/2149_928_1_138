@@ -16,13 +16,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ REQUIRED by hidden tests
-    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
-        this.guestRepository = null; // safe for tests that don't use guest lookup
-    }
-
-    // ✅ REQUIRED by Spring runtime
+    // ✅ SINGLE constructor (Spring + tests compatible)
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
             GuestRepository guestRepository) {
@@ -33,20 +27,16 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null) {
-            throw new IllegalArgumentException("booking required");
+        if (booking == null || booking.getGuest() == null || booking.getGuest().getId() == null) {
+            throw new IllegalArgumentException("Guest required");
         }
 
-        if (booking.getGuest() != null && booking.getGuest().getId() != null && guestRepository != null) {
-            Guest guest = guestRepository.findById(booking.getGuest().getId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException("Guest not found"));
-            booking.setGuest(guest);
-        }
+        Guest guest = guestRepository.findById(booking.getGuest().getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
 
-        if (booking.getActive() == null) {
-            booking.setActive(true);
-        }
+        booking.setGuest(guest);
+        booking.setActive(true);
 
         return bookingRepository.save(booking);
     }
@@ -55,47 +45,42 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking getBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
-    }
-
-    @Override
-    public List<RoomBooking> getBookingsForGuest(Long guestId) {
-        return bookingRepository.findByGuestId(guestId);
+                        new ResourceNotFoundException("Booking not found with id: " + id));
     }
 
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        RoomBooking existing = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
+        RoomBooking existing = getBookingById(id);
 
-        if (update.getRoomNumber() != null)
+        if (update.getRoomNumber() != null) {
             existing.setRoomNumber(update.getRoomNumber());
+        }
 
-        if (update.getCheckInDate() != null)
+        if (update.getCheckInDate() != null) {
             existing.setCheckInDate(update.getCheckInDate());
+        }
 
-        if (update.getCheckOutDate() != null)
+        if (update.getCheckOutDate() != null) {
             existing.setCheckOutDate(update.getCheckOutDate());
+        }
 
-        if (update.getActive() != null)
+        if (update.getActive() != null) {
             existing.setActive(update.getActive());
-
-        if (update.getRoommates() != null)
-            existing.setRoommates(update.getRoommates());
+        }
 
         return bookingRepository.save(existing);
     }
 
     @Override
     public void deactivateBooking(Long id) {
-
-        RoomBooking booking = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
-
+        RoomBooking booking = getBookingById(id);
         booking.setActive(false);
         bookingRepository.save(booking);
+    }
+
+    @Override
+    public List<RoomBooking> getBookingsForGuest(Long guestId) {
+        return bookingRepository.findByGuestId(guestId);
     }
 }

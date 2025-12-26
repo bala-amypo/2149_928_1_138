@@ -16,21 +16,25 @@ public class DigitalKeyController {
         this.service = service;
     }
 
-    @PostMapping("/generate/{bookingId}")
+    // ✅ Generate key for a booking (FIXED PATH)
+    @PostMapping("/{bookingId}")
     public DigitalKey generate(@PathVariable Long bookingId) {
         return service.generateKey(bookingId);
     }
 
+    // ✅ Get key by ID
     @GetMapping("/{id}")
     public DigitalKey get(@PathVariable Long id) {
         return service.getKeyById(id);
     }
 
+    // ✅ Get active key for booking
     @GetMapping("/booking/{bookingId}")
     public DigitalKey getActive(@PathVariable Long bookingId) {
         return service.getActiveKeyForBooking(bookingId);
     }
 
+    // ✅ Get all keys for guest
     @GetMapping("/guest/{guestId}")
     public List<DigitalKey> getByGuest(@PathVariable Long guestId) {
         return service.getKeysForGuest(guestId);

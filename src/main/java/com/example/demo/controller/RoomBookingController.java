@@ -16,29 +16,36 @@ public class RoomBookingController {
         this.roomBookingService = roomBookingService;
     }
 
+    // ✅ Create booking
     @PostMapping
     public RoomBooking create(@RequestBody RoomBooking booking) {
         return roomBookingService.createBooking(booking);
     }
 
+    // ✅ Get booking by ID
     @GetMapping("/{id}")
     public RoomBooking getById(@PathVariable Long id) {
         return roomBookingService.getBookingById(id);
     }
 
+    // ✅ Get bookings for guest
     @GetMapping("/guest/{guestId}")
     public List<RoomBooking> getForGuest(@PathVariable Long guestId) {
         return roomBookingService.getBookingsForGuest(guestId);
     }
 
+    // ✅ Update booking
     @PutMapping("/{id}")
-    public RoomBooking update(@PathVariable Long id,
-                              @RequestBody RoomBooking booking) {
+    public RoomBooking update(
+            @PathVariable Long id,
+            @RequestBody RoomBooking booking) {
         return roomBookingService.updateBooking(id, booking);
     }
 
+    // ✅ Deactivate booking (IMPORTANT FIX)
     @PutMapping("/{id}/deactivate")
-    public void deactivate(@PathVariable Long id) {
+    public RoomBooking deactivate(@PathVariable Long id) {
         roomBookingService.deactivateBooking(id);
+        return roomBookingService.getBookingById(id);
     }
 }

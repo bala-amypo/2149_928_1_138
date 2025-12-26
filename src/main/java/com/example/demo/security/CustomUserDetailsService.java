@@ -17,9 +17,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) {
-        var guest = guestRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(email));
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+
+        if (username == null || username.trim().isEmpty()) {
+            throw new UsernameNotFoundException("Username is empty");
+        }
+
+        var guest = guestRepository.findByEmail(username)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found: " + username)
+                );
 
         return new User(
                 guest.getEmail(),

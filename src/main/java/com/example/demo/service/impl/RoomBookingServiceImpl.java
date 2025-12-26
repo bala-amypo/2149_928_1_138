@@ -6,9 +6,11 @@ import com.example.demo.model.RoomBooking;
 import com.example.demo.repository.GuestRepository;
 import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service   // ✅ THIS WAS MISSING
 public class RoomBookingServiceImpl implements RoomBookingService {
 
     private final RoomBookingRepository roomBookingRepository;
@@ -23,16 +25,13 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        // ✅ REQUIRED by tests
         if (!booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
             throw new IllegalArgumentException("Check-in");
         }
 
-        // ✅ LOAD FULL GUEST (FIX FOR NULL VALUES)
-        Long guestId = booking.getGuest().getId();
-        Guest guest = guestRepository.findById(guestId)
+        Guest guest = guestRepository.findById(booking.getGuest().getId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found " + guestId));
+                        new ResourceNotFoundException("Guest not found"));
 
         booking.setGuest(guest);
         booking.setActive(true);

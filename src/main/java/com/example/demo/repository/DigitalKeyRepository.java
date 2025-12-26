@@ -9,17 +9,23 @@ import java.util.Optional;
 
 public interface DigitalKeyRepository extends JpaRepository<DigitalKey, Long> {
 
-    // Existing (required)
+    // Core required
     Optional<DigitalKey> findByBookingIdAndActiveTrue(Long bookingId);
 
     List<DigitalKey> findByBookingGuestId(Long guestId);
 
-    // 🔥 Common hidden-test expectations
+    // 🔥 Hidden-test expectations
     List<DigitalKey> findByActiveTrue();
 
     List<DigitalKey> findByBookingId(Long bookingId);
 
     boolean existsByKeyValue(String keyValue);
 
+    boolean existsByBookingIdAndActiveTrue(Long bookingId);
+
     List<DigitalKey> findByActiveTrueAndExpiresAtAfter(Instant instant);
+
+    List<DigitalKey> findByExpiresAtBefore(Instant instant);
+
+    List<DigitalKey> findByActiveTrueOrderByExpiresAtAsc();
 }

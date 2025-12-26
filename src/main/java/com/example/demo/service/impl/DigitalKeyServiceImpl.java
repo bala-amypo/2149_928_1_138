@@ -8,7 +8,6 @@ import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.DigitalKeyService;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -40,22 +39,23 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
             throw new IllegalStateException("booking inactive");
         }
 
-        // ❌ Deactivate existing active keys for this booking
+        // ❌ Deactivate existing active key (only one active allowed)
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(existingKey -> {
                     existingKey.setActive(false);
                     keyRepository.save(existingKey);
                 });
 
-        Timestamp issuedAt = Timestamp.from(Instant.now());
+        // ✅ FIX: Use Instant (matches entity + tests)
+        Instant issuedAt = Instant.now();
 
         // ✅ Expire key at booking checkout end (23:59:59)
         LocalDate checkoutDate = booking.getCheckOutDate();
-        Timestamp expiresAt = Timestamp.valueOf(
-                checkoutDate.atTime(23, 59, 59)
+        Instant expiresAt =
+                checkoutDate
+                        .atTime(23, 59, 59)
                         .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime()
-        );
+                        .toInstant();
 
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);

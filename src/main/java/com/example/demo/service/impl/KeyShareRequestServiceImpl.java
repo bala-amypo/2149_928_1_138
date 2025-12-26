@@ -42,10 +42,7 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
             throw new IllegalArgumentException("sharedBy and sharedWith cannot be same");
         }
 
-        // ==================================================
-        // 🔥 FIX: FETCH FULL ENTITIES AND ATTACH THEM
-        // ==================================================
-
+        // 🔥 Fetch full entities
         DigitalKey key = keyRepo.findById(request.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
@@ -73,5 +70,24 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
         KeyShareRequest req = getShareRequestById(requestId);
         req.setStatus(status);
         return repo.save(req);
+    }
+
+    // ✅ MISSING METHODS — NOW ADDED
+
+    @Override
+    public KeyShareRequest getShareRequestById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Share request not found " + id));
+    }
+
+    @Override
+    public List<KeyShareRequest> getRequestsSharedBy(Long guestId) {
+        return repo.findBySharedById(guestId);
+    }
+
+    @Override
+    public List<KeyShareRequest> getRequestsSharedWith(Long guestId) {
+        return repo.findBySharedWithId(guestId);
     }
 }

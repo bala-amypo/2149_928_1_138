@@ -37,15 +37,24 @@ public class AccessLogServiceImpl implements AccessLogService {
     @Override
     public AccessLog createLog(AccessLog log) {
 
-        // ❌ Block future access
+        // ❌ Block future timestamps
         if (log.getAccessTime().after(new Timestamp(System.currentTimeMillis()))) {
             throw new IllegalArgumentException("future access not allowed");
         }
 
-        // ✅ Fetch FULL entities
+        // ✅ Fetch full DigitalKey
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
+        // ❌ Key must be active
+        if (!Boolean.TRUE.equals(key.getActive())) {
+            log.setDigitalKey(key);
+            log.setResult("DENIED");
+            log.setReason("Key inactive");
+            return repo.save(log);
+        }
+
+        // ✅ Fetch full Guest
         Guest guest = guestRepo.findById(log.getGuest().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
 
@@ -55,6 +64,7 @@ public class AccessLogServiceImpl implements AccessLogService {
 
         boolean isOwner =
                 key.getBooking() != null &&
+                key.getBooking().getGuest() != null &&
                 key.getBooking().getGuest().getId().equals(guest.getId());
 
         boolean isSharedUser =
@@ -64,24 +74,23 @@ public class AccessLogServiceImpl implements AccessLogService {
                         "APPROVED"
                 );
 
-        boolean allowed = Boolean.TRUE.equals(key.getActive()) &&
-                          (isOwner || isSharedUser);
+        boolean allowed = isOwner || isSharedUser;
 
         // =============================
-        // ✅ ATTACH FULL OBJECTS
+        // ✅ ATTACH FULL OBJECT GRAPH
         // =============================
         log.setDigitalKey(key);
         log.setGuest(guest);
 
         // =============================
-        // ✅ RESULT + REASON
+        // ✅ RESULT + REASON (NO NULLS)
         // =============================
         if (allowed) {
             log.setResult("SUCCESS");
             log.setReason("Access granted");
         } else {
             log.setResult("DENIED");
-            log.setReason("Unauthorized access");
+            log.setReason("No valid key ownership or approved share");
         }
 
         return repo.save(log);

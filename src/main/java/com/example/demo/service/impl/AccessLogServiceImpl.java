@@ -48,20 +48,20 @@ public class AccessLogServiceImpl implements AccessLogService {
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
+        // ✅ Fetch Guest early (so it's always available)
+        Guest guest = guestRepo.findById(log.getGuest().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
+
         // ❌ Key inactive
         if (!Boolean.TRUE.equals(key.getActive())) {
-            return deny(log, key, "key inactive");
+            return deny(log, key, guest, "key inactive");
         }
 
         // ❌ Key expired
         if (key.getExpiresAt() != null &&
                 key.getExpiresAt().toInstant().isBefore(now)) {
-            return deny(log, key, "key expired");
+            return deny(log, key, guest, "key expired");
         }
-
-        // ✅ Fetch Guest
-        Guest guest = guestRepo.findById(log.getGuest().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
 
         // ❌ Guest inactive
         if (!Boolean.TRUE.equals(guest.getActive())) {
@@ -106,15 +106,14 @@ public class AccessLogServiceImpl implements AccessLogService {
             }
         }
 
-        boolean allowed = isOwner || hasValidShare;
+        // =============================
+        // ✅ FINAL DECISION
+        // =============================
 
-        // =============================
-        // ✅ ATTACH FULL OBJECT GRAPH
-        // =============================
         log.setDigitalKey(key);
         log.setGuest(guest);
 
-        if (allowed) {
+        if (isOwner || hasValidShare) {
             log.setResult("SUCCESS");
             log.setReason("Access granted");
         } else {
@@ -126,15 +125,8 @@ public class AccessLogServiceImpl implements AccessLogService {
     }
 
     // =============================
-    // 🔁 Helper methods (NO NULLS)
+    // 🔁 Helper method (NO NULLS)
     // =============================
-
-    private AccessLog deny(AccessLog log, DigitalKey key, String reason) {
-        log.setDigitalKey(key);
-        log.setResult("DENIED");
-        log.setReason(reason);
-        return repo.save(log);
-    }
 
     private AccessLog deny(AccessLog log, DigitalKey key, Guest guest, String reason) {
         log.setDigitalKey(key);

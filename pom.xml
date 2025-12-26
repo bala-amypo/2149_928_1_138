@@ -7,7 +7,6 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ================= PARENT ================= -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -18,8 +17,6 @@
     <groupId>com.example</groupId>
     <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>demo</name>
-    <description>Hotel Room Key Digital Share</description>
 
     <properties>
         <java.version>17</java.version>
@@ -84,22 +81,16 @@
             <version>2.3.0</version>
         </dependency>
 
-        <!-- ================= TESTING ================= -->
+        <!-- ================= TESTING (ONLY TESTNG) ================= -->
 
-        <!-- Spring Boot Test (NO JUnit execution) -->
+        <!-- Spring Test (NO JUNIT) -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-        <!-- TestNG (REQUIRED) -->
+        <!-- TestNG -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -120,20 +111,25 @@
     <build>
         <plugins>
 
-            <!-- Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- FORCE TestNG -->
+            <!-- 🔒 HARD LOCK TESTNG -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.testng</groupId>
+                        <artifactId>testng</artifactId>
+                        <version>7.9.0</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <useModulePath>false</useModulePath>
-                    <testNGArtifactName>org.testng:testng</testNGArtifactName>
                     <providers>
                         <provider>
                             <name>testng</name>

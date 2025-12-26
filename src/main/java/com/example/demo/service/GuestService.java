@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.model.Guest;
-
 import java.util.List;
 
 public interface GuestService {
@@ -15,4 +14,7 @@ public interface GuestService {
     List<Guest> getAllGuests();
 
     void deactivateGuest(Long id);
+
+    // ✅ ADD THIS
+    boolean existsByEmail(String email);
 }

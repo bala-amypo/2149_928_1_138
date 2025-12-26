@@ -15,12 +15,15 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public GuestServiceImpl(GuestRepository guestRepository,
-                            PasswordEncoder passwordEncoder) {
+    public GuestServiceImpl(
+            GuestRepository guestRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.guestRepository = guestRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    // ================= CREATE =================
     @Override
     public Guest createGuest(Guest guest) {
 
@@ -28,12 +31,13 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // ✅ ENCODE ONLY ONCE (HERE)
+        // ✅ PASSWORD ENCODED ONLY HERE (ONCE)
         guest.setPassword(passwordEncoder.encode(guest.getPassword()));
 
         return guestRepository.save(guest);
     }
 
+    // ================= UPDATE =================
     @Override
     public Guest updateGuest(Long id, Guest guest) {
         Guest existing = getGuestById(id);
@@ -44,10 +48,13 @@ public class GuestServiceImpl implements GuestService {
         return guestRepository.save(existing);
     }
 
+    // ================= READ =================
     @Override
     public Guest getGuestById(Long id) {
         return guestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found")
+                );
     }
 
     @Override
@@ -55,6 +62,7 @@ public class GuestServiceImpl implements GuestService {
         return guestRepository.findAll();
     }
 
+    // ================= DELETE / DEACTIVATE =================
     @Override
     public void deactivateGuest(Long id) {
         Guest guest = getGuestById(id);
@@ -62,7 +70,7 @@ public class GuestServiceImpl implements GuestService {
         guestRepository.save(guest);
     }
 
-    // ✅ REQUIRED FOR AUTH CONTROLLER
+    // ================= AUTH SUPPORT =================
     @Override
     public boolean existsByEmail(String email) {
         return guestRepository.existsByEmail(email);

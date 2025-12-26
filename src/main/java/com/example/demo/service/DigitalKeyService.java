@@ -1,11 +1,16 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.DigitalKey;
+import com.example.demo.model.DigitalKey;
+
 import java.util.List;
 
 public interface DigitalKeyService {
-    DigitalKey createKey(DigitalKey key);
-    DigitalKey getKey(Long id);
-    List<DigitalKey> getAllKeys();
-    void deactivateKey(Long id);
+
+    DigitalKey generateKey(Long bookingId);
+
+    DigitalKey getKeyById(Long id);
+
+    DigitalKey getActiveKeyForBooking(Long bookingId);
+
+    List<DigitalKey> getKeysForGuest(Long guestId);
 }

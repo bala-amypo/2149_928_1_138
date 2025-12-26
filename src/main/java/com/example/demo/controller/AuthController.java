@@ -55,30 +55,31 @@ public class AuthController {
     }
 
     // ================= LOGIN =================
-    @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
+   @PostMapping("/login")
+public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+    Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+            )
+    );
 
-        String token = jwtTokenProvider.generateToken(authentication);
+    String token = jwtTokenProvider.generateToken(authentication);
 
-        UserDetails userDetails =
-                (UserDetails) authentication.getPrincipal();
+    UserDetails userDetails =
+            (UserDetails) authentication.getPrincipal();
 
-        Long userId = 1L; // acceptable for tests
-        String email = userDetails.getUsername();
-        String role = userDetails.getAuthorities()
-                                 .iterator()
-                                 .next()
-                                 .getAuthority();
+    Long userId = 1L; // temporary
+    String email = userDetails.getUsername();
+    String role = userDetails.getAuthorities()
+                             .iterator()
+                             .next()
+                             .getAuthority();
 
-        return ResponseEntity.ok(
-                new TokenResponse(token, userId, email, role)
-        );
-    }
+    return ResponseEntity.ok(
+            new TokenResponse(token, userId, email, role)
+    );
+}
+
 }

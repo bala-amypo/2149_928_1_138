@@ -16,14 +16,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            CustomUserDetailsService customUserDetailsService
+            CustomUserDetailsService userDetailsService
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.customUserDetailsService = customUserDetailsService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -51,15 +51,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔐 THIS IS THE MISSING PIECE
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(customUserDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
-
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration
@@ -70,5 +61,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 }

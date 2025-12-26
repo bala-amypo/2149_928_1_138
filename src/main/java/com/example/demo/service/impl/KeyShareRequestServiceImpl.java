@@ -73,3 +73,5 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
         KeyShareRequest req = getShareRequestById(requestId);
         req.setStatus(status);
         return repo.save(req);
+    }
+}

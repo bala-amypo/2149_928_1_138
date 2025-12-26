@@ -1,3 +1,15 @@
+package com.example.demo.service.impl;
+
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Guest;
+import com.example.demo.repository.GuestRepository;
+import com.example.demo.service.GuestService;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 @Service
 public class GuestServiceImpl implements GuestService {
 
@@ -26,7 +38,7 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("email already exists");
         }
 
-        // Encode only if raw password
+        // Encode only raw passwords
         if (guest.getPassword() != null &&
                 !guest.getPassword().startsWith("$2a$")) {
             guest.setPassword(passwordEncoder.encode(guest.getPassword()));
@@ -71,7 +83,6 @@ public class GuestServiceImpl implements GuestService {
         if (update.getActive() != null)
             existing.setActive(update.getActive());
 
-        // ROLE NORMALIZATION (CRITICAL)
         if (update.getRole() != null) {
             String role = update.getRole();
             if (!role.startsWith("ROLE_")) {

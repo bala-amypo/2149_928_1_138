@@ -18,13 +18,9 @@ public class AccessLog {
   private Guest guest;
 
   private Timestamp accessTime;
-
   private String result;
   private String reason;
 
-  public AccessLog() {}
-
-  // getters and setters
   public Long getId() {
     return id;
   }

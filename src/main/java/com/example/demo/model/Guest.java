@@ -17,26 +17,21 @@ public class Guest {
   private String email;
 
   private String phoneNumber;
-
   private String password;
 
   private Boolean verified = false;
-
   private Boolean active = true;
-
   private String role = "ROLE_USER";
 
   private Timestamp createdAt;
 
-  public Guest() {}
-
   @PrePersist
   public void onCreate() {
-    this.createdAt = new Timestamp(System.currentTimeMillis());
+    createdAt = new Timestamp(System.currentTimeMillis());
     if (active == null) active = true;
+    if (verified == null) verified = false;
   }
 
-  // getters and setters
   public Long getId() {
     return id;
   }

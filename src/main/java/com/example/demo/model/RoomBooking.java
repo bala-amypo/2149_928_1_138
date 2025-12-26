@@ -17,7 +17,6 @@ public class RoomBooking {
   private Guest guest;
 
   private String roomNumber;
-
   private LocalDate checkInDate;
   private LocalDate checkOutDate;
 
@@ -31,9 +30,6 @@ public class RoomBooking {
   )
   private Set < Guest > roommates = new HashSet < > ();
 
-  public RoomBooking() {}
-
-  // getters and setters
   public Long getId() {
     return id;
   }

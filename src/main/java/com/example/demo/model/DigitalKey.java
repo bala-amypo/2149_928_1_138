@@ -14,17 +14,11 @@ public class DigitalKey {
   @ManyToOne
   private RoomBooking booking;
 
-  @Column(unique = true)
   private String keyValue;
-
   private Timestamp issuedAt;
   private Timestamp expiresAt;
-
   private Boolean active = true;
 
-  public DigitalKey() {}
-
-  // getters and setters
   public Long getId() {
     return id;
   }

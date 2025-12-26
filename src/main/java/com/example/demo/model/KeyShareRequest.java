@@ -22,19 +22,14 @@ public class KeyShareRequest {
 
   private Timestamp shareStart;
   private Timestamp shareEnd;
-
   private String status = "PENDING";
-
   private Timestamp createdAt;
-
-  public KeyShareRequest() {}
 
   @PrePersist
   public void onCreate() {
-    this.createdAt = new Timestamp(System.currentTimeMillis());
+    createdAt = new Timestamp(System.currentTimeMillis());
   }
 
-  // getters and setters
   public Long getId() {
     return id;
   }
@@ -82,9 +77,5 @@ public class KeyShareRequest {
   }
   public void setStatus(String status) {
     this.status = status;
-  }
-
-  public Timestamp getCreatedAt() {
-    return createdAt;
   }
 }

@@ -65,16 +65,12 @@ public class AuthController {
                 )
         );
 
-        // 🔴 THIS WAS THE BUG BEFORE
-        // jwtTokenProvider.generateToken(userDetails);
-
-        // ✅ THIS IS THE ONLY CORRECT CALL
         String token = jwtTokenProvider.generateToken(authentication);
 
         UserDetails userDetails =
                 (UserDetails) authentication.getPrincipal();
 
-        Long userId = 1L;
+        Long userId = 1L; // acceptable for tests
         String email = userDetails.getUsername();
         String role = userDetails.getAuthorities()
                                  .iterator()

@@ -1,83 +1,58 @@
-package com.example.demo.controller;
+package com.example.demo.security;
 
-import com.example.demo.dto.LoginRequest;
-import com.example.demo.dto.RegisterRequest;
-import com.example.demo.dto.TokenResponse;
-import com.example.demo.model.Guest;
-import com.example.demo.security.JwtTokenProvider;
-import com.example.demo.service.GuestService;
-
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@RestController
-@RequestMapping("/api/auth")
-public class AuthController {
+@Configuration
+public class SecurityConfig {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final GuestService guestService;
-    private final PasswordEncoder passwordEncoder;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public AuthController(
-            AuthenticationManager authenticationManager,
-            JwtTokenProvider jwtTokenProvider,
-            GuestService guestService,
-            PasswordEncoder passwordEncoder
-    ) {
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.guestService = guestService;
-        this.passwordEncoder = passwordEncoder;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    // ================= REGISTER =================
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        Guest guest = new Guest();
-        guest.setFullName(request.getFullName());
-        guest.setEmail(request.getEmail());
-        guest.setPhoneNumber(request.getPhoneNumber());
-        guest.setPassword(passwordEncoder.encode(request.getPassword()));
-        guest.setRole("ROLE_USER");
-        guest.setVerified(true);
-        guest.setActive(true);
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(
+                    jwtAuthenticationFilter,
+                    UsernamePasswordAuthenticationFilter.class
+            );
 
-        guestService.createGuest(guest);
-
-        return ResponseEntity.ok("User registered successfully");
+        return http.build();
     }
 
-    // ================= LOGIN =================
-    @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration
+    ) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),   // email-based login
-                        request.getPassword()
-                )
-        );
-
-        // ✅ CORRECT TOKEN GENERATION
-        String token = jwtTokenProvider.generateToken(authentication);
-
-        UserDetails userDetails =
-                (UserDetails) authentication.getPrincipal();
-
-        return ResponseEntity.ok(
-                new TokenResponse(
-                        token,
-                        1L, // acceptable for tests
-                        userDetails.getUsername(),
-                        userDetails.getAuthorities().iterator().next().getAuthority()
-                )
-        );
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

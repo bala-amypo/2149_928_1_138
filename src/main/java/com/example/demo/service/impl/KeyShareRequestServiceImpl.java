@@ -10,7 +10,6 @@ import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.KeyShareRequestService;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -32,18 +31,15 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
     @Override
     public KeyShareRequest createShareRequest(KeyShareRequest request) {
 
-        // ✅ Share window ordering
         if (!request.getShareEnd().isAfter(request.getShareStart())) {
             throw new IllegalArgumentException("share end must be after start");
         }
 
-        // ✅ Prevent self-share
         if (request.getSharedBy().getId()
                 .equals(request.getSharedWith().getId())) {
             throw new IllegalArgumentException("self share not allowed");
         }
 
-        // ✅ Fetch full key
         DigitalKey key = keyRepo.findById(request.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("key not found"));
 
@@ -51,7 +47,6 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
             throw new IllegalStateException("key inactive");
         }
 
-        // ✅ Fetch full guests
         Guest sharedBy = guestRepo.findById(request.getSharedBy().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("guest not found"));
 
@@ -63,7 +58,6 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
             throw new IllegalStateException("recipient not eligible");
         }
 
-        // ✅ Attach full entities
         request.setDigitalKey(key);
         request.setSharedBy(sharedBy);
         request.setSharedWith(sharedWith);
@@ -81,15 +75,12 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
 
         KeyShareRequest req = getShareRequestById(requestId);
 
-        // ✅ Approval must fit inside key validity
         if ("APPROVED".equals(status)) {
             DigitalKey key = req.getDigitalKey();
 
-            Instant issuedAt = key.getIssuedAt().toInstant();
-            Instant expiresAt = key.getExpiresAt().toInstant();
-
-            if (req.getShareStart().isBefore(issuedAt) ||
-                req.getShareEnd().isAfter(expiresAt)) {
+            // ✅ FIX: Direct Instant comparison (NO toInstant)
+            if (req.getShareStart().isBefore(key.getIssuedAt()) ||
+                req.getShareEnd().isAfter(key.getExpiresAt())) {
                 throw new IllegalStateException("outside key validity");
             }
         }

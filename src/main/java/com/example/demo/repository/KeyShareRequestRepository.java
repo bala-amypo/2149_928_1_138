@@ -7,4 +7,9 @@ import java.util.*;
 public interface KeyShareRequestRepository extends JpaRepository<KeyShareRequest, Long> {
     List<KeyShareRequest> findBySharedById(Long guestId);
     List<KeyShareRequest> findBySharedWithId(Long guestId);
+    boolean existsByDigitalKeyIdAndSharedWithIdAndStatus(
+            Long digitalKeyId,
+            Long sharedWithId,
+            String status
+    );
 }

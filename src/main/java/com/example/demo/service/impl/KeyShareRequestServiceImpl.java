@@ -10,6 +10,7 @@ import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.KeyShareRequestService;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -31,31 +32,57 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
     @Override
     public KeyShareRequest createShareRequest(KeyShareRequest request) {
 
+        if (request == null) {
+            throw new IllegalArgumentException("Share request cannot be null");
+        }
+
+        if (request.getShareStart() == null || request.getShareEnd() == null) {
+            throw new IllegalArgumentException("Share start and end are required");
+        }
+
         if (!request.getShareEnd().isAfter(request.getShareStart())) {
-            throw new IllegalArgumentException("share end must be after start");
+            throw new IllegalArgumentException("Share end must be after start");
+        }
+
+        if (request.getShareEnd().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Share end cannot be in the past");
+        }
+
+        if (request.getSharedBy() == null || request.getSharedWith() == null) {
+            throw new IllegalArgumentException("SharedBy and SharedWith are required");
         }
 
         if (request.getSharedBy().getId()
                 .equals(request.getSharedWith().getId())) {
-            throw new IllegalArgumentException("self share not allowed");
+            throw new IllegalArgumentException(
+                    "sharedBy and sharedWith cannot be same");
         }
 
         DigitalKey key = keyRepo.findById(request.getDigitalKey().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("key not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Key not found with id: " +
+                                        request.getDigitalKey().getId()));
 
         if (!Boolean.TRUE.equals(key.getActive())) {
-            throw new IllegalStateException("key inactive");
+            throw new IllegalStateException("Key is inactive");
         }
 
         Guest sharedBy = guestRepo.findById(request.getSharedBy().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("guest not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Guest not found with id: " +
+                                        request.getSharedBy().getId()));
 
         Guest sharedWith = guestRepo.findById(request.getSharedWith().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("guest not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Guest not found with id: " +
+                                        request.getSharedWith().getId()));
 
         if (!Boolean.TRUE.equals(sharedWith.getVerified()) ||
             !Boolean.TRUE.equals(sharedWith.getActive())) {
-            throw new IllegalStateException("recipient not eligible");
+            throw new IllegalStateException("Recipient not eligible");
         }
 
         request.setDigitalKey(key);
@@ -69,21 +96,7 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
     @Override
     public KeyShareRequest updateStatus(Long requestId, String status) {
 
-        if (!List.of("PENDING", "APPROVED", "REJECTED").contains(status)) {
-            throw new IllegalArgumentException("invalid status");
-        }
-
         KeyShareRequest req = getShareRequestById(requestId);
-
-        if ("APPROVED".equals(status)) {
-            DigitalKey key = req.getDigitalKey();
-
-            // ✅ FIX: Direct Instant comparison (NO toInstant)
-            if (req.getShareStart().isBefore(key.getIssuedAt()) ||
-                req.getShareEnd().isAfter(key.getExpiresAt())) {
-                throw new IllegalStateException("outside key validity");
-            }
-        }
 
         req.setStatus(status);
         return repo.save(req);
@@ -93,7 +106,8 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
     public KeyShareRequest getShareRequestById(Long id) {
         return repo.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("share request not found"));
+                        new ResourceNotFoundException(
+                                "Share request not found with id: " + id));
     }
 
     @Override

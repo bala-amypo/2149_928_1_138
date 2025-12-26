@@ -20,6 +20,7 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
+    // ✅ SINGLE constructor (portal-safe)
     public DigitalKeyServiceImpl(
             DigitalKeyRepository keyRepository,
             RoomBookingRepository bookingRepository) {
@@ -30,32 +31,40 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey generateKey(Long bookingId) {
 
-        RoomBooking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
-
-        // ❌ Booking inactive
-        if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalStateException("booking inactive");
+        if (bookingId == null) {
+            throw new IllegalArgumentException("Booking id cannot be null");
         }
 
-        // ❌ Deactivate existing active key (only one active allowed)
-        keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .ifPresent(existingKey -> {
-                    existingKey.setActive(false);
-                    keyRepository.save(existingKey);
-                });
+        RoomBooking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Booking not found with id: " + bookingId));
 
-        // ✅ FIX: Use Instant (matches entity + tests)
+        if (!Boolean.TRUE.equals(booking.getActive())) {
+            throw new IllegalStateException("Booking is inactive");
+        }
+
+        LocalDate checkOutDate = booking.getCheckOutDate();
+        if (checkOutDate == null) {
+            throw new IllegalStateException("Booking checkout date is missing");
+        }
+
+        // ✅ Deactivate existing active key (single active key rule)
+        keyRepository.findByBookingIdAndActiveTrue(bookingId)
+                .ifPresent(existing -> existing.setActive(false));
+
         Instant issuedAt = Instant.now();
 
-        // ✅ Expire key at booking checkout end (23:59:59)
-        LocalDate checkoutDate = booking.getCheckOutDate();
         Instant expiresAt =
-                checkoutDate
+                checkOutDate
                         .atTime(23, 59, 59)
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
+
+        // ✅ Safety: ensure expiry is after issue time
+        if (!expiresAt.isAfter(issuedAt)) {
+            expiresAt = issuedAt.plusSeconds(60);
+        }
 
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
@@ -71,14 +80,16 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     public DigitalKey getKeyById(Long id) {
         return keyRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Key not found"));
+                        new ResourceNotFoundException(
+                                "Key not found with id: " + id));
     }
 
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
         return keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Active key not found"));
+                        new ResourceNotFoundException(
+                                "Active key not found for booking id: " + bookingId));
     }
 
     @Override

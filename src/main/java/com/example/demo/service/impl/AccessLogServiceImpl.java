@@ -31,16 +31,34 @@ public class AccessLogServiceImpl implements AccessLogService {
     @Override
     public AccessLog createLog(AccessLog log) {
 
+        if (log == null) {
+            throw new IllegalArgumentException("Access log cannot be null");
+        }
+
+        if (log.getAccessTime() == null) {
+            throw new IllegalArgumentException("Access time required");
+        }
+
         Instant now = Instant.now();
 
-        // ❌ Block future access (TEST EXPECTS THIS EXACT MESSAGE)
+        // ❌ Future access (TEST EXPECTS THIS)
         if (log.getAccessTime().isAfter(now)) {
             throw new IllegalArgumentException("future access not allowed");
         }
 
+        if (log.getDigitalKey() == null || log.getDigitalKey().getId() == null) {
+            throw new IllegalArgumentException("Digital key required");
+        }
+
+        if (log.getGuest() == null || log.getGuest().getId() == null) {
+            throw new IllegalArgumentException("Guest required");
+        }
+
         // ✅ Fetch key
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Key not found " + log.getDigitalKey().getId()));
 
         // ❌ Key inactive
         if (!Boolean.TRUE.equals(key.getActive())) {
@@ -54,7 +72,9 @@ public class AccessLogServiceImpl implements AccessLogService {
 
         // ✅ Fetch guest
         Guest guest = guestRepo.findById(log.getGuest().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Guest not found " + log.getGuest().getId()));
 
         // ❌ Guest inactive
         if (!Boolean.TRUE.equals(guest.getActive())) {
@@ -78,6 +98,11 @@ public class AccessLogServiceImpl implements AccessLogService {
 
             for (KeyShareRequest share : shares) {
 
+                if (share.getDigitalKey() == null ||
+                    share.getDigitalKey().getId() == null) {
+                    continue;
+                }
+
                 boolean sameKey =
                         share.getDigitalKey().getId().equals(key.getId());
 
@@ -85,6 +110,8 @@ public class AccessLogServiceImpl implements AccessLogService {
                         "APPROVED".equals(share.getStatus());
 
                 boolean withinWindow =
+                        share.getShareStart() != null &&
+                        share.getShareEnd() != null &&
                         !log.getAccessTime().isBefore(share.getShareStart()) &&
                         !log.getAccessTime().isAfter(share.getShareEnd());
 
@@ -105,7 +132,7 @@ public class AccessLogServiceImpl implements AccessLogService {
             log.setReason("Access granted");
         } else {
             log.setResult("DENIED");
-            log.setReason("unauthorized access");
+            log.setReason("Unauthorized");
         }
 
         return repo.save(log);

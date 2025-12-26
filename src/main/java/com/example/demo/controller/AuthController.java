@@ -45,7 +45,7 @@ public class AuthController {
         guest.setEmail(request.getEmail());
         guest.setPhoneNumber(request.getPhoneNumber());
         guest.setPassword(passwordEncoder.encode(request.getPassword()));
-        guest.setRole("ROLE_USER");
+        guest.setRole("ROLE_USER");   // correct
         guest.setVerified(true);
         guest.setActive(true);
 
@@ -54,20 +54,21 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");
     }
 
-    // ✅ LOGIN
+    // ✅ LOGIN (EMAIL BASED)
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
+                        request.getEmail(),    // 🔑 EMAIL
                         request.getPassword()
                 )
         );
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
 
-        String token = jwtTokenProvider.generateToken(authentication);
+        String token = jwtTokenProvider.generateToken(userDetails);
 
         Long userId = 1L; // acceptable for tests
         String email = userDetails.getUsername();

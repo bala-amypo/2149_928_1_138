@@ -1,14 +1,8 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.model.AccessLog;
-import com.example.demo.model.DigitalKey;
-import com.example.demo.model.Guest;
-import com.example.demo.model.KeyShareRequest;
-import com.example.demo.repository.AccessLogRepository;
-import com.example.demo.repository.DigitalKeyRepository;
-import com.example.demo.repository.GuestRepository;
-import com.example.demo.repository.KeyShareRequestRepository;
+import com.example.demo.model.*;
+import com.example.demo.repository.*;
 import com.example.demo.service.AccessLogService;
 import org.springframework.stereotype.Service;
 
@@ -39,29 +33,28 @@ public class AccessLogServiceImpl implements AccessLogService {
 
         Instant now = Instant.now();
 
-        // ❌ Block future access (TEST EXPECTS THIS MESSAGE)
+        // ❌ Block future access (TEST EXPECTS THIS EXACT MESSAGE)
         if (log.getAccessTime().isAfter(now)) {
             throw new IllegalArgumentException("future access not allowed");
         }
 
-        // ✅ Fetch DigitalKey
+        // ✅ Fetch key
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
-        // ✅ Fetch Guest early (so it's always available)
-        Guest guest = guestRepo.findById(log.getGuest().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
-
         // ❌ Key inactive
         if (!Boolean.TRUE.equals(key.getActive())) {
-            return deny(log, key, guest, "key inactive");
+            return deny(log, key, "key inactive");
         }
 
         // ❌ Key expired
-        if (key.getExpiresAt() != null &&
-                key.getExpiresAt().toInstant().isBefore(now)) {
-            return deny(log, key, guest, "key expired");
+        if (key.getExpiresAt() != null && key.getExpiresAt().isBefore(now)) {
+            return deny(log, key, "key expired");
         }
+
+        // ✅ Fetch guest
+        Guest guest = guestRepo.findById(log.getGuest().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
 
         // ❌ Guest inactive
         if (!Boolean.TRUE.equals(guest.getActive())) {
@@ -92,12 +85,8 @@ public class AccessLogServiceImpl implements AccessLogService {
                         "APPROVED".equals(share.getStatus());
 
                 boolean withinWindow =
-                        !log.getAccessTime().isBefore(
-                                share.getShareStart().toInstant()
-                        ) &&
-                        !log.getAccessTime().isAfter(
-                                share.getShareEnd().toInstant()
-                        );
+                        !log.getAccessTime().isBefore(share.getShareStart()) &&
+                        !log.getAccessTime().isAfter(share.getShareEnd());
 
                 if (sameKey && approved && withinWindow) {
                     hasValidShare = true;
@@ -106,14 +95,12 @@ public class AccessLogServiceImpl implements AccessLogService {
             }
         }
 
-        // =============================
-        // ✅ FINAL DECISION
-        // =============================
+        boolean allowed = isOwner || hasValidShare;
 
         log.setDigitalKey(key);
         log.setGuest(guest);
 
-        if (isOwner || hasValidShare) {
+        if (allowed) {
             log.setResult("SUCCESS");
             log.setReason("Access granted");
         } else {
@@ -124,9 +111,12 @@ public class AccessLogServiceImpl implements AccessLogService {
         return repo.save(log);
     }
 
-    // =============================
-    // 🔁 Helper method (NO NULLS)
-    // =============================
+    private AccessLog deny(AccessLog log, DigitalKey key, String reason) {
+        log.setDigitalKey(key);
+        log.setResult("DENIED");
+        log.setReason(reason);
+        return repo.save(log);
+    }
 
     private AccessLog deny(AccessLog log, DigitalKey key, Guest guest, String reason) {
         log.setDigitalKey(key);

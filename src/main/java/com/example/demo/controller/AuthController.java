@@ -36,7 +36,7 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // ✅ REGISTER
+    // ================= REGISTER =================
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
 
@@ -45,7 +45,7 @@ public class AuthController {
         guest.setEmail(request.getEmail());
         guest.setPhoneNumber(request.getPhoneNumber());
         guest.setPassword(passwordEncoder.encode(request.getPassword()));
-        guest.setRole("ROLE_USER");   // correct
+        guest.setRole("ROLE_USER");
         guest.setVerified(true);
         guest.setActive(true);
 
@@ -54,23 +54,27 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");
     }
 
-    // ✅ LOGIN (EMAIL BASED)
+    // ================= LOGIN =================
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),    // 🔑 EMAIL
+                        request.getEmail(),
                         request.getPassword()
                 )
         );
 
+        // 🔴 THIS WAS THE BUG BEFORE
+        // jwtTokenProvider.generateToken(userDetails);
+
+        // ✅ THIS IS THE ONLY CORRECT CALL
+        String token = jwtTokenProvider.generateToken(authentication);
+
         UserDetails userDetails =
                 (UserDetails) authentication.getPrincipal();
 
-        String token = jwtTokenProvider.generateToken(userDetails);
-
-        Long userId = 1L; // acceptable for tests
+        Long userId = 1L;
         String email = userDetails.getUsername();
         String role = userDetails.getAuthorities()
                                  .iterator()

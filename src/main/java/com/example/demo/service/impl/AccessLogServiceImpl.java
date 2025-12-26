@@ -1,3 +1,20 @@
+package com.example.demo.service.impl;
+
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.AccessLog;
+import com.example.demo.model.DigitalKey;
+import com.example.demo.model.Guest;
+import com.example.demo.model.KeyShareRequest;
+import com.example.demo.repository.AccessLogRepository;
+import com.example.demo.repository.DigitalKeyRepository;
+import com.example.demo.repository.GuestRepository;
+import com.example.demo.repository.KeyShareRequestRepository;
+import com.example.demo.service.AccessLogService;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.List;
+
 @Service
 public class AccessLogServiceImpl implements AccessLogService {
 
@@ -30,7 +47,6 @@ public class AccessLogServiceImpl implements AccessLogService {
 
         Instant now = Instant.now();
 
-        // ❌ Future access
         if (log.getAccessTime().isAfter(now)) {
             throw new IllegalArgumentException("future access not allowed");
         }
@@ -43,55 +59,37 @@ public class AccessLogServiceImpl implements AccessLogService {
             throw new IllegalArgumentException("guest required");
         }
 
-        // ✅ Fetch key
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Key not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
-        // ❌ Key inactive
         if (!Boolean.TRUE.equals(key.getActive())) {
             return deny(log, key, "key inactive");
         }
 
-        // ❌ Key expired
         if (key.getExpiresAt() != null && key.getExpiresAt().isBefore(now)) {
             return deny(log, key, "key expired");
         }
 
-        // ✅ Fetch guest
         Guest guest = guestRepo.findById(log.getGuest().getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
 
-        // ❌ Guest inactive
         if (!Boolean.TRUE.equals(guest.getActive())) {
             return deny(log, key, guest, "guest inactive");
         }
 
-        // =============================
-        // 🔐 ACCESS RULES
-        // =============================
-
         boolean isOwner = false;
-
         if (key.getBooking() != null &&
             key.getBooking().getGuest() != null &&
             key.getBooking().getGuest().getId() != null) {
-
-            isOwner = key.getBooking()
-                         .getGuest()
-                         .getId()
-                         .equals(guest.getId());
+            isOwner = key.getBooking().getGuest().getId().equals(guest.getId());
         }
 
         boolean hasValidShare = false;
-
         if (!isOwner) {
             List<KeyShareRequest> shares =
                     shareRepo.findBySharedWithId(guest.getId());
 
             for (KeyShareRequest share : shares) {
-
                 if (share.getDigitalKey() == null ||
                     share.getDigitalKey().getId() == null ||
                     share.getShareStart() == null ||
@@ -99,29 +97,23 @@ public class AccessLogServiceImpl implements AccessLogService {
                     continue;
                 }
 
-                boolean sameKey =
-                        share.getDigitalKey().getId().equals(key.getId());
-
-                boolean approved =
-                        "APPROVED".equals(share.getStatus());
-
-                boolean withinWindow =
+                boolean sameKey = share.getDigitalKey().getId().equals(key.getId());
+                boolean approved = "APPROVED".equals(share.getStatus());
+                boolean within =
                         !log.getAccessTime().isBefore(share.getShareStart()) &&
                         !log.getAccessTime().isAfter(share.getShareEnd());
 
-                if (sameKey && approved && withinWindow) {
+                if (sameKey && approved && within) {
                     hasValidShare = true;
                     break;
                 }
             }
         }
 
-        boolean allowed = isOwner || hasValidShare;
-
         log.setDigitalKey(key);
         log.setGuest(guest);
 
-        if (allowed) {
+        if (isOwner || hasValidShare) {
             log.setResult("SUCCESS");
             log.setReason("access granted");
         } else {

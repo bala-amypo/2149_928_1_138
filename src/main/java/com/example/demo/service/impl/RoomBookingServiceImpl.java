@@ -4,51 +4,51 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.RoomBooking;
 import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public class RoomBookingServiceImpl implements RoomBookingService {
 
-    private final RoomBookingRepository bookingRepository;
+    private final RoomBookingRepository repository;
 
-    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
+    public RoomBookingServiceImpl(RoomBookingRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
         if (booking.getCheckInDate().isAfter(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("Invalid booking dates");
+            throw new IllegalArgumentException("Check-in date must be before check-out");
         }
-        return bookingRepository.save(booking);
+        return repository.save(booking);
     }
 
     @Override
-    public RoomBooking updateBooking(Long id, RoomBooking booking) {
+    public RoomBooking updateBooking(Long id, RoomBooking update) {
         RoomBooking existing = getBookingById(id);
-        existing.setRoomNumber(booking.getRoomNumber());
-        existing.setCheckInDate(booking.getCheckInDate());
-        existing.setCheckOutDate(booking.getCheckOutDate());
-        return bookingRepository.save(existing);
+        if (update.getCheckInDate().isAfter(update.getCheckOutDate())) {
+            throw new IllegalArgumentException("Check-in date must be before check-out");
+        }
+        existing.setCheckInDate(update.getCheckInDate());
+        existing.setCheckOutDate(update.getCheckOutDate());
+        return repository.save(existing);
     }
 
     @Override
     public RoomBooking getBookingById(Long id) {
-        return bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found " + id));
     }
 
     @Override
     public List<RoomBooking> getBookingsForGuest(Long guestId) {
-        return bookingRepository.findByGuestId(guestId);
+        return repository.findByGuestId(guestId);
     }
 
     @Override
     public void deactivateBooking(Long id) {
         RoomBooking booking = getBookingById(id);
         booking.setActive(false);
-        bookingRepository.save(booking);
+        repository.save(booking);
     }
 }

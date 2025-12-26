@@ -1,37 +1,56 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.AccessLog;
-import com.example.demo.repository.AccessLogRepository;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.*;
+import com.example.demo.repository.*;
 import com.example.demo.service.AccessLogService;
-import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.List;
 
-@Service
 public class AccessLogServiceImpl implements AccessLogService {
 
-    private final AccessLogRepository repository;
+    private final AccessLogRepository repo;
+    private final DigitalKeyRepository keyRepo;
+    private final GuestRepository guestRepo;
+    private final KeyShareRequestRepository shareRepo;
 
-    public AccessLogServiceImpl(AccessLogRepository repository) {
-        this.repository = repository;
+    public AccessLogServiceImpl(AccessLogRepository repo,
+                                DigitalKeyRepository keyRepo,
+                                GuestRepository guestRepo,
+                                KeyShareRequestRepository shareRepo) {
+        this.repo = repo;
+        this.keyRepo = keyRepo;
+        this.guestRepo = guestRepo;
+        this.shareRepo = shareRepo;
     }
 
     @Override
     public AccessLog createLog(AccessLog log) {
-        if (log.getAccessTime().isAfter(Instant.now())) {
-            throw new IllegalArgumentException("Access time cannot be in future");
+        if (log.getAccessTime().after(new Timestamp(System.currentTimeMillis()))) {
+            throw new IllegalArgumentException("future access not allowed");
         }
-        return repository.save(log);
+
+        DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
+        Guest guest = guestRepo.findById(log.getGuest().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
+
+        boolean allowed = key.getActive() &&
+                (key.getBooking().getGuest().getId().equals(guest.getId()) ||
+                        shareRepo.findBySharedWithId(guest.getId()).isEmpty());
+
+        log.setResult(allowed ? "SUCCESS" : "DENIED");
+        return repo.save(log);
     }
 
     @Override
     public List<AccessLog> getLogsForKey(Long keyId) {
-        return repository.findByDigitalKeyId(keyId);
+        return repo.findByDigitalKeyId(keyId);
     }
 
     @Override
     public List<AccessLog> getLogsForGuest(Long guestId) {
-        return repository.findByGuestId(guestId);
+        return repo.findByGuestId(guestId);
     }
 }

@@ -36,7 +36,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ THIS IS THE MISSING BEAN
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {

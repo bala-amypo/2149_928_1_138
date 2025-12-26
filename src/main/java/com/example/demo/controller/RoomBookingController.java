@@ -17,7 +17,7 @@ public class RoomBookingController {
     }
 
     // ✅ Create booking
-    @PostMapping
+    @PostMapping(consumes = "application/json", produces = "application/json")
     public RoomBooking create(@RequestBody RoomBooking booking) {
         return roomBookingService.createBooking(booking);
     }
@@ -35,14 +35,14 @@ public class RoomBookingController {
     }
 
     // ✅ Update booking
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
     public RoomBooking update(
             @PathVariable Long id,
             @RequestBody RoomBooking booking) {
         return roomBookingService.updateBooking(id, booking);
     }
 
-    // ✅ Deactivate booking (IMPORTANT FIX)
+    // ✅ Deactivate booking (tests expect updated entity)
     @PutMapping("/{id}/deactivate")
     public RoomBooking deactivate(@PathVariable Long id) {
         roomBookingService.deactivateBooking(id);

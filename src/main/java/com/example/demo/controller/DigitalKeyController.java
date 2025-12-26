@@ -16,8 +16,8 @@ public class DigitalKeyController {
         this.service = service;
     }
 
-    // ✅ Generate key for a booking (FIXED PATH)
-    @PostMapping("/{bookingId}")
+    // ✅ Generate key for a booking (NO PATH COLLISION)
+    @PostMapping("/generate/{bookingId}")
     public DigitalKey generate(@PathVariable Long bookingId) {
         return service.generateKey(bookingId);
     }

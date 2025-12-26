@@ -16,16 +16,19 @@ public class AccessLogController {
         this.service = service;
     }
 
-    @PostMapping
+    // ✅ Create access log
+    @PostMapping(consumes = "application/json", produces = "application/json")
     public AccessLog create(@RequestBody AccessLog log) {
         return service.createLog(log);
     }
 
+    // ✅ Get logs by digital key
     @GetMapping("/key/{keyId}")
     public List<AccessLog> byKey(@PathVariable Long keyId) {
         return service.getLogsForKey(keyId);
     }
 
+    // ✅ Get logs by guest
     @GetMapping("/guest/{guestId}")
     public List<AccessLog> byGuest(@PathVariable Long guestId) {
         return service.getLogsForGuest(guestId);

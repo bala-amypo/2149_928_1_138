@@ -22,12 +22,12 @@
         <java.version>17</java.version>
     </properties>
 
-    <!-- ===================== -->
+    <!-- ========================= -->
     <!-- DEPENDENCIES -->
-    <!-- ===================== -->
+    <!-- ========================= -->
     <dependencies>
 
-        <!-- Spring Boot -->
+        <!-- Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -82,32 +82,25 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- ===================== -->
+        <!-- ========================= -->
         <!-- TESTING -->
-        <!-- ===================== -->
+        <!-- ========================= -->
 
-        <!-- Spring Boot Test (JUnit COMPLETELY REMOVED) -->
+        <!-- Spring Test (NO JUNIT) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.junit.platform</groupId>
                     <artifactId>junit-platform-launcher</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter</artifactId>
+                </exclusion>
             </exclusions>
-        </dependency>
-
-        <!-- Spring Test -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <!-- Mockito -->
@@ -118,7 +111,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- TestNG (ONLY test engine) -->
+        <!-- TestNG -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -128,9 +121,9 @@
 
     </dependencies>
 
-    <!-- ===================== -->
+    <!-- ========================= -->
     <!-- BUILD -->
-    <!-- ===================== -->
+    <!-- ========================= -->
     <build>
         <plugins>
 
@@ -149,13 +142,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.testng</groupId>
+                        <artifactId>testng</artifactId>
+                        <version>7.9.0</version>
+                    </dependency>
+                </dependencies>
+
                 <configuration>
-                    <!-- DO NOT let JUnit Platform load -->
                     <useModulePath>false</useModulePath>
-
-                    <!-- Force TestNG -->
-                    <testNGArtifactName>org.testng:testng</testNGArtifactName>
-
                     <includes>
                         <include>**/*Tests.java</include>
                     </includes>

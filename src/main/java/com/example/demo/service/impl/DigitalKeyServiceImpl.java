@@ -6,38 +6,62 @@ import com.example.demo.model.RoomBooking;
 import com.example.demo.repository.DigitalKeyRepository;
 import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.DigitalKeyService;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.stereotype.Service;
-@Service 
+
+@Service
 public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
-                                 RoomBookingRepository bookingRepository) {
+    public DigitalKeyServiceImpl(
+            DigitalKeyRepository keyRepository,
+            RoomBookingRepository bookingRepository) {
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }
 
     @Override
     public DigitalKey generateKey(Long bookingId) {
-        RoomBooking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found " + bookingId));
 
-        if (!booking.getActive()) {
-            throw new IllegalStateException("Booking is inactive");
+        RoomBooking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
+
+        // ❌ Booking inactive
+        if (!Boolean.TRUE.equals(booking.getActive())) {
+            throw new IllegalStateException("booking inactive");
         }
 
-        Timestamp now = new Timestamp(System.currentTimeMillis());
+        // ❌ Deactivate existing active keys for this booking
+        keyRepository.findByBookingIdAndActiveTrue(bookingId)
+                .ifPresent(existingKey -> {
+                    existingKey.setActive(false);
+                    keyRepository.save(existingKey);
+                });
+
+        Timestamp issuedAt = Timestamp.from(Instant.now());
+
+        // ✅ Expire key at booking checkout end (23:59:59)
+        LocalDate checkoutDate = booking.getCheckOutDate();
+        Timestamp expiresAt = Timestamp.valueOf(
+                checkoutDate.atTime(23, 59, 59)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime()
+        );
+
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
         key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(now);
-        key.setExpiresAt(new Timestamp(now.getTime() + 86400000)); // +24h
+        key.setIssuedAt(issuedAt);
+        key.setExpiresAt(expiresAt);
         key.setActive(true);
 
         return keyRepository.save(key);
@@ -46,13 +70,15 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey getKeyById(Long id) {
         return keyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Key not found " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Key not found"));
     }
 
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
         return keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Active key not found " + bookingId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Active key not found"));
     }
 
     @Override

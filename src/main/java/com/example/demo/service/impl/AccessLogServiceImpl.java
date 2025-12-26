@@ -4,6 +4,7 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.AccessLog;
 import com.example.demo.model.DigitalKey;
 import com.example.demo.model.Guest;
+import com.example.demo.model.KeyShareRequest;
 import com.example.demo.repository.AccessLogRepository;
 import com.example.demo.repository.DigitalKeyRepository;
 import com.example.demo.repository.GuestRepository;
@@ -12,6 +13,7 @@ import com.example.demo.service.AccessLogService;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -26,8 +28,7 @@ public class AccessLogServiceImpl implements AccessLogService {
             AccessLogRepository repo,
             DigitalKeyRepository keyRepo,
             GuestRepository guestRepo,
-            KeyShareRequestRepository shareRepo
-    ) {
+            KeyShareRequestRepository shareRepo) {
         this.repo = repo;
         this.keyRepo = keyRepo;
         this.guestRepo = guestRepo;
@@ -37,29 +38,38 @@ public class AccessLogServiceImpl implements AccessLogService {
     @Override
     public AccessLog createLog(AccessLog log) {
 
-        // ❌ Block future timestamps
-        if (log.getAccessTime().after(new Timestamp(System.currentTimeMillis()))) {
-            throw new IllegalArgumentException("future access not allowed");
+        Timestamp now = Timestamp.from(Instant.now());
+
+        // ❌ Future access blocked
+        if (log.getAccessTime().after(now)) {
+            throw new IllegalArgumentException("future access");
         }
 
-        // ✅ Fetch full DigitalKey
+        // ✅ Fetch DigitalKey
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
-        // ❌ Key must be active
+        // ❌ Key inactive
         if (!Boolean.TRUE.equals(key.getActive())) {
-            log.setDigitalKey(key);
-            log.setResult("DENIED");
-            log.setReason("Key inactive");
-            return repo.save(log);
+            return deny(log, key, "key inactive");
         }
 
-        // ✅ Fetch full Guest
+        // ❌ Key expired
+        if (key.getExpiresAt() != null && now.after(key.getExpiresAt())) {
+            return deny(log, key, "key expired");
+        }
+
+        // ✅ Fetch Guest
         Guest guest = guestRepo.findById(log.getGuest().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
 
+        // ❌ Guest inactive
+        if (!Boolean.TRUE.equals(guest.getActive())) {
+            return deny(log, key, guest, "guest inactive");
+        }
+
         // =============================
-        // 🔐 ACCESS VALIDATION
+        // 🔐 ACCESS RULES
         // =============================
 
         boolean isOwner =
@@ -67,14 +77,24 @@ public class AccessLogServiceImpl implements AccessLogService {
                 key.getBooking().getGuest() != null &&
                 key.getBooking().getGuest().getId().equals(guest.getId());
 
-        boolean isSharedUser =
-                shareRepo.existsByDigitalKeyIdAndSharedWithIdAndStatus(
-                        key.getId(),
-                        guest.getId(),
-                        "APPROVED"
-                );
+        boolean hasValidShare = false;
 
-        boolean allowed = isOwner || isSharedUser;
+        if (!isOwner) {
+            List<KeyShareRequest> shares =
+                    shareRepo.findBySharedWithId(guest.getId());
+
+            for (KeyShareRequest share : shares) {
+                if (share.getDigitalKey().getId().equals(key.getId()) &&
+                    "APPROVED".equals(share.getStatus()) &&
+                    !log.getAccessTime().before(share.getShareStart()) &&
+                    !log.getAccessTime().after(share.getShareEnd())) {
+                    hasValidShare = true;
+                    break;
+                }
+            }
+        }
+
+        boolean allowed = isOwner || hasValidShare;
 
         // =============================
         // ✅ ATTACH FULL OBJECT GRAPH
@@ -82,17 +102,33 @@ public class AccessLogServiceImpl implements AccessLogService {
         log.setDigitalKey(key);
         log.setGuest(guest);
 
-        // =============================
-        // ✅ RESULT + REASON (NO NULLS)
-        // =============================
         if (allowed) {
             log.setResult("SUCCESS");
             log.setReason("Access granted");
         } else {
             log.setResult("DENIED");
-            log.setReason("No valid key ownership or approved share");
+            log.setReason("unauthorized access");
         }
 
+        return repo.save(log);
+    }
+
+    // =============================
+    // 🔁 Helper methods (NO NULLS)
+    // =============================
+
+    private AccessLog deny(AccessLog log, DigitalKey key, String reason) {
+        log.setDigitalKey(key);
+        log.setResult("DENIED");
+        log.setReason(reason);
+        return repo.save(log);
+    }
+
+    private AccessLog deny(AccessLog log, DigitalKey key, Guest guest, String reason) {
+        log.setDigitalKey(key);
+        log.setGuest(guest);
+        log.setResult("DENIED");
+        log.setReason(reason);
         return repo.save(log);
     }
 

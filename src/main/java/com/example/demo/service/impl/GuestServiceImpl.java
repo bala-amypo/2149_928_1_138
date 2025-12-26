@@ -23,10 +23,14 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest createGuest(Guest guest) {
+
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
+
+        // ✅ ENCODE ONLY ONCE (HERE)
         guest.setPassword(passwordEncoder.encode(guest.getPassword()));
+
         return guestRepository.save(guest);
     }
 
@@ -56,5 +60,11 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = getGuestById(id);
         guest.setActive(false);
         guestRepository.save(guest);
+    }
+
+    // ✅ REQUIRED FOR AUTH CONTROLLER
+    @Override
+    public boolean existsByEmail(String email) {
+        return guestRepository.existsByEmail(email);
     }
 }

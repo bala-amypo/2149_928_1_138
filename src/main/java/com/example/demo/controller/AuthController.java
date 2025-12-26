@@ -14,7 +14,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,18 +23,15 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final GuestService guestService;
-    private final PasswordEncoder passwordEncoder;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtTokenProvider jwtTokenProvider,
-            GuestService guestService,
-            PasswordEncoder passwordEncoder
+            GuestService guestService
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.guestService = guestService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     // ================= REGISTER =================
@@ -52,11 +48,15 @@ public class AuthController {
         guest.setFullName(request.getFullName());
         guest.setEmail(request.getEmail());
         guest.setPhoneNumber(request.getPhoneNumber());
-        guest.setPassword(passwordEncoder.encode(request.getPassword())); // ✅ any length
+
+        // ✅ RAW password only (ANY length allowed)
+        guest.setPassword(request.getPassword());
+
         guest.setRole("ROLE_USER");
         guest.setVerified(true);
         guest.setActive(true);
 
+        // ✅ password will be encoded INSIDE service
         guestService.createGuest(guest);
 
         return ResponseEntity.ok("User registered successfully");
@@ -74,15 +74,21 @@ public class AuthController {
                     )
             );
 
+            // ✅ CORRECT TOKEN GENERATION
             String token = jwtTokenProvider.generateToken(authentication);
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            UserDetails userDetails =
+                    (UserDetails) authentication.getPrincipal();
 
             return ResponseEntity.ok(
                     new TokenResponse(
                             token,
-                            1L,
+                            1L, // temp userId
                             userDetails.getUsername(),
-                            userDetails.getAuthorities().iterator().next().getAuthority()
+                            userDetails.getAuthorities()
+                                       .iterator()
+                                       .next()
+                                       .getAuthority()
                     )
             );
 

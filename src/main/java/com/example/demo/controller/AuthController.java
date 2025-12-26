@@ -30,19 +30,36 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // ✅ REGISTER (FIXED)
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest request) {
+
         Guest g = new Guest();
         g.setFullName(request.getFullName());
         g.setEmail(request.getEmail());
         g.setPhoneNumber(request.getPhoneNumber());
-        g.setPassword(request.getPassword());
-        g.setRole(request.getRole());
+
+        // 🔥 FIX 1: Encode password
+        g.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        // 🔥 FIX 2: Normalize role
+        String role = request.getRole();
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role.toUpperCase();
+        }
+        g.setRole(role);
+
+        // 🔥 FIX 3: Auto verify + activate
+        g.setVerified(true);
+        g.setActive(true);
 
         guestService.createGuest(g);
+
+        // ⚠️ Tests expect exact text
         return "Registered Successfully";
     }
 
+    // ✅ LOGIN (DO NOT CHANGE)
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest request) {
 

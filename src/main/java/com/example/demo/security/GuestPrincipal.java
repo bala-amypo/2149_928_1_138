@@ -6,7 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class GuestPrincipal implements UserDetails {
 
@@ -22,9 +22,14 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(
-                new SimpleGrantedAuthority(guest.getRole())
-        );
+        String role = guest.getRole();
+
+        // 🔐 Ensure Spring Security role format
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
+
+        return List.of(new SimpleGrantedAuthority(role));
     }
 
     @Override
@@ -34,7 +39,7 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return guest.getEmail();
+        return guest.getEmail(); // email-based login
     }
 
     @Override
@@ -44,7 +49,7 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return guest.isActive();
     }
 
     @Override
@@ -54,6 +59,6 @@ public class GuestPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return guest.isActive();
+        return guest.isVerified();
     }
 }

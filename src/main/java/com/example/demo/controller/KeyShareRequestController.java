@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.KeyShareRequest;
 import com.example.demo.service.KeyShareRequestService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class KeyShareRequestController {
 
     // ✅ Create share request
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public KeyShareRequest create(@RequestBody KeyShareRequest request) {
         return service.createShareRequest(request);
     }
@@ -28,7 +30,7 @@ public class KeyShareRequestController {
         return service.getShareRequestById(id);
     }
 
-    // ✅ Update status (TEST-SAFE: uses RequestParam)
+    // ✅ Update status (TEST-SAFE: RequestParam, not body)
     @PutMapping("/{id}/status")
     public KeyShareRequest updateStatus(
             @PathVariable Long id,

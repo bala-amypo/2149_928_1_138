@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.AccessLog;
 import com.example.demo.service.AccessLogService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +17,9 @@ public class AccessLogController {
         this.service = service;
     }
 
-    // ✅ Create access log (TEST-SAFE)
+    // ✅ Create access log (PORTAL + TEST SAFE)
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public AccessLog create(@RequestBody AccessLog log) {
         return service.createLog(log);
     }

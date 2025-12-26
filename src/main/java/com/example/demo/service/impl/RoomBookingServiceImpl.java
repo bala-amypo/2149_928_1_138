@@ -8,6 +8,7 @@ import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -16,35 +17,39 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository roomBookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ PRIMARY CONSTRUCTOR (Spring)
+    // ✅ SINGLE constructor (Spring + portal)
     public RoomBookingServiceImpl(RoomBookingRepository roomBookingRepository,
                                   GuestRepository guestRepository) {
         this.roomBookingRepository = roomBookingRepository;
         this.guestRepository = guestRepository;
     }
 
-    // ✅ SECONDARY CONSTRUCTOR (JUnit tests)
-    public RoomBookingServiceImpl(RoomBookingRepository roomBookingRepository) {
-        this.roomBookingRepository = roomBookingRepository;
-        this.guestRepository = null; // safe for tests
-    }
-
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (!booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("Check-in");
+        if (booking == null) {
+            throw new IllegalArgumentException("Booking cannot be null");
         }
 
-        // Tests may not inject GuestRepository
-        if (guestRepository != null && booking.getGuest() != null) {
+        LocalDate checkIn = booking.getCheckInDate();
+        LocalDate checkOut = booking.getCheckOutDate();
+
+        if (checkIn == null || checkOut == null || !checkIn.isBefore(checkOut)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
+
+        // ✅ Validate guest only if provided
+        if (booking.getGuest() != null && booking.getGuest().getId() != null) {
             Guest guest = guestRepository.findById(booking.getGuest().getId())
                     .orElseThrow(() ->
-                            new ResourceNotFoundException("Guest not found"));
+                            new ResourceNotFoundException("Guest not found with id: "
+                                    + booking.getGuest().getId()));
             booking.setGuest(guest);
         }
 
+        // ✅ Default active flag
         booking.setActive(true);
+
         return roomBookingRepository.save(booking);
     }
 
@@ -53,16 +58,26 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
         RoomBooking existing = roomBookingRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found " + id));
+                        new ResourceNotFoundException("Booking not found with id: " + id));
 
-        if (!update.getCheckInDate().isBefore(update.getCheckOutDate())) {
-            throw new IllegalArgumentException("Check-in");
+        LocalDate checkIn = update.getCheckInDate();
+        LocalDate checkOut = update.getCheckOutDate();
+
+        if (checkIn == null || checkOut == null || !checkIn.isBefore(checkOut)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
         }
 
-        existing.setRoomNumber(update.getRoomNumber());
-        existing.setCheckInDate(update.getCheckInDate());
-        existing.setCheckOutDate(update.getCheckOutDate());
-        existing.setActive(update.getActive());
+        // ✅ Selective update
+        if (update.getRoomNumber() != null) {
+            existing.setRoomNumber(update.getRoomNumber());
+        }
+
+        existing.setCheckInDate(checkIn);
+        existing.setCheckOutDate(checkOut);
+
+        if (update.getActive() != null) {
+            existing.setActive(update.getActive());
+        }
 
         return roomBookingRepository.save(existing);
     }
@@ -71,7 +86,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking getBookingById(Long id) {
         return roomBookingRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found " + id));
+                        new ResourceNotFoundException("Booking not found with id: " + id));
     }
 
     @Override

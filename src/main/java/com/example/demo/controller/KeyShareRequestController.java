@@ -1,44 +1,80 @@
-package com.example.demo.controller;
+package com.example.demo.service.impl;
 
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.DigitalKey;
+import com.example.demo.model.Guest;
 import com.example.demo.model.KeyShareRequest;
+import com.example.demo.model.ShareStatus;
+import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.KeyShareRequestService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/key-share")
-public class KeyShareRequestController {
+@Service
+public class KeyShareRequestServiceImpl implements KeyShareRequestService {
 
-    private final KeyShareRequestService service;
+    private final KeyShareRequestRepository repository;
 
-    public KeyShareRequestController(KeyShareRequestService service) {
-        this.service = service;
+    public KeyShareRequestServiceImpl(KeyShareRequestRepository repository) {
+        this.repository = repository;
     }
 
-    @PostMapping
-    public KeyShareRequest create(@RequestBody KeyShareRequest request) {
-        return service.createShareRequest(request);
+    // ================= CREATE SHARE REQUEST =================
+    @Override
+    public KeyShareRequest createShareRequest(KeyShareRequest request) {
+
+        Guest from = request.getSharedBy();
+        Guest to = request.getSharedWith();
+
+        if (from.getId().equals(to.getId())) {
+            throw new IllegalArgumentException("Cannot share key with self");
+        }
+
+        if (!to.isVerified() || !to.isActive()) {
+            throw new IllegalStateException("Recipient not eligible");
+        }
+
+        if (request.getShareEnd().isBefore(request.getShareStart())) {
+            throw new IllegalArgumentException("Invalid share window");
+        }
+
+        DigitalKey key = request.getDigitalKey();
+        if (!key.isActive()) {
+            throw new IllegalStateException("Key not active");
+        }
+
+        // status defaults to PENDING via @PrePersist
+        return repository.save(request);
     }
 
-    @PutMapping("/{id}/status")
-    public KeyShareRequest updateStatus(@PathVariable Long id,
-                                        @RequestParam String status) {
-        return service.updateStatus(id, status);
+    // ================= UPDATE STATUS =================
+    @Override
+    public KeyShareRequest updateStatus(Long requestId, ShareStatus status) {
+
+        KeyShareRequest request = getShareRequestById(requestId);
+
+        // ✅ ENUM SAFE
+        request.setStatus(status);
+
+        return repository.save(request);
     }
 
-    @GetMapping("/{id}")
-    public KeyShareRequest getById(@PathVariable Long id) {
-        return service.getShareRequestById(id);
+    // ================= GET BY ID =================
+    @Override
+    public KeyShareRequest getShareRequestById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Share request not found"));
     }
 
-    @GetMapping("/shared-by/{guestId}")
-    public List<KeyShareRequest> sharedBy(@PathVariable Long guestId) {
-        return service.getRequestsSharedBy(guestId);
+    // ================= LISTS =================
+    @Override
+    public List<KeyShareRequest> getRequestsSharedBy(Long guestId) {
+        return repository.findBySharedById(guestId);
     }
 
-    @GetMapping("/shared-with/{guestId}")
-    public List<KeyShareRequest> sharedWith(@PathVariable Long guestId) {
-        return service.getRequestsSharedWith(guestId);
+    @Override
+    public List<KeyShareRequest> getRequestsSharedWith(Long guestId) {
+        return repository.findBySharedWithId(guestId);
     }
 }

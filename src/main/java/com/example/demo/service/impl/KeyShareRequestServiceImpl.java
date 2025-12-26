@@ -10,6 +10,7 @@ import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.KeyShareRequestService;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -32,7 +33,7 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
     public KeyShareRequest createShareRequest(KeyShareRequest request) {
 
         // ✅ Share window ordering
-        if (!request.getShareEnd().after(request.getShareStart())) {
+        if (!request.getShareEnd().isAfter(request.getShareStart())) {
             throw new IllegalArgumentException("share end must be after start");
         }
 
@@ -84,8 +85,11 @@ public class KeyShareRequestServiceImpl implements KeyShareRequestService {
         if ("APPROVED".equals(status)) {
             DigitalKey key = req.getDigitalKey();
 
-            if (req.getShareStart().before(key.getIssuedAt()) ||
-                req.getShareEnd().after(key.getExpiresAt())) {
+            Instant issuedAt = key.getIssuedAt().toInstant();
+            Instant expiresAt = key.getExpiresAt().toInstant();
+
+            if (req.getShareStart().isBefore(issuedAt) ||
+                req.getShareEnd().isAfter(expiresAt)) {
                 throw new IllegalStateException("outside key validity");
             }
         }

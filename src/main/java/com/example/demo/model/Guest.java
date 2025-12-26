@@ -3,7 +3,7 @@ package com.example.demo.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 @Entity
 @Table(
@@ -24,7 +24,7 @@ public class Guest {
     private String phoneNumber;
 
     @Column(nullable = false)
-    @JsonIgnore // ✅ IMPORTANT: hide password in API responses
+    @JsonIgnore // ✅ hide password in API responses
     private String password;
 
     private Boolean verified = false;
@@ -32,11 +32,12 @@ public class Guest {
 
     private String role = "ROLE_USER";
 
-    private Timestamp createdAt;
+    // ✅ FIX: Instant instead of Timestamp
+    private Instant createdAt;
 
     @PrePersist
     public void onCreate() {
-        this.createdAt = new Timestamp(System.currentTimeMillis());
+        this.createdAt = Instant.now();
         if (this.active == null) this.active = true;
         if (this.verified == null) this.verified = false;
     }
@@ -108,7 +109,8 @@ public class Guest {
         this.role = role;
     }
 
-    public Timestamp getCreatedAt() {
+    // ✅ Tests expect Instant
+    public Instant getCreatedAt() {
         return createdAt;
     }
 }

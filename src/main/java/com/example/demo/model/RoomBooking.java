@@ -9,6 +9,12 @@ import java.util.Set;
 @Table(name = "room_bookings")
 public class RoomBooking {
 
+    // ✅ REQUIRED by portal & JPA
+    public RoomBooking() {
+        this.roommates = new HashSet<>();
+        this.active = true;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,11 +37,13 @@ public class RoomBooking {
     )
     private Set<Guest> roommates = new HashSet<>();
 
-    // ✅ Ensure defaults
     @PrePersist
     public void onCreate() {
         if (active == null) {
             active = true;
+        }
+        if (roommates == null) {
+            roommates = new HashSet<>();
         }
     }
 
@@ -90,11 +98,14 @@ public class RoomBooking {
     }
 
     public Set<Guest> getRoommates() {
+        if (roommates == null) {
+            roommates = new HashSet<>();
+        }
         return roommates;
     }
 
-    // ✅ REQUIRED for tests & updates
+    // ✅ Null-safe setter (PORTAL CRITICAL)
     public void setRoommates(Set<Guest> roommates) {
-        this.roommates = roommates;
+        this.roommates = (roommates != null) ? roommates : new HashSet<>();
     }
 }

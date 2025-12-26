@@ -24,7 +24,7 @@ public class Guest {
     private String phoneNumber;
 
     @Column(nullable = false)
-    @JsonIgnore // ✅ hide password in API responses
+    @JsonIgnore
     private String password;
 
     private Boolean verified = false;
@@ -32,7 +32,6 @@ public class Guest {
 
     private String role = "ROLE_USER";
 
-    // ✅ FIX: Instant instead of Timestamp
     private Instant createdAt;
 
     @PrePersist
@@ -80,7 +79,7 @@ public class Guest {
         return password;
     }
 
-    // still needed internally for authentication
+    // required for authentication + tests
     public void setPassword(String password) {
         this.password = password;
     }
@@ -109,8 +108,12 @@ public class Guest {
         this.role = role;
     }
 
-    // ✅ Tests expect Instant
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    // ✅ REQUIRED for portal tests
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -25,7 +25,9 @@ public class KeyShareRequest {
 
     private Instant shareEnd;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private ShareStatus status;
+
 
     private Instant createdAt;
 

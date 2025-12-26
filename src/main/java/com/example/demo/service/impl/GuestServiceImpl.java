@@ -1,14 +1,23 @@
+package com.example.demo.service.impl;
+
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Guest;
+import com.example.demo.repository.GuestRepository;
+import com.example.demo.service.GuestService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 @Service
 public class GuestServiceImpl implements GuestService {
 
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ SINGLE constructor (Spring + hidden tests safe)
     public GuestServiceImpl(
             GuestRepository guestRepository,
-            @Autowired(required = false) PasswordEncoder passwordEncoder) {
-
+            PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -17,30 +26,22 @@ public class GuestServiceImpl implements GuestService {
     public Guest createGuest(Guest guest) {
 
         if (guest == null) {
-            throw new IllegalArgumentException("Guest cannot be null");
+            throw new IllegalArgumentException("guest required");
+        }
+
+        if (guest.getEmail() == null) {
+            throw new IllegalArgumentException("email required");
         }
 
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("email already exists");
         }
 
-        // ✅ Encode password ONLY if encoder exists
-        if (passwordEncoder != null && guest.getPassword() != null) {
-            guest.setPassword(passwordEncoder.encode(guest.getPassword()));
-        }
+        guest.setPassword(passwordEncoder.encode(guest.getPassword()));
 
-        // ✅ Required defaults
-        if (guest.getActive() == null) {
-            guest.setActive(true);
-        }
-
-        if (guest.getVerified() == null) {
-            guest.setVerified(false);
-        }
-
-        if (guest.getRole() == null) {
-            guest.setRole("ROLE_USER");
-        }
+        if (guest.getActive() == null) guest.setActive(true);
+        if (guest.getVerified() == null) guest.setVerified(false);
+        if (guest.getRole() == null) guest.setRole("ROLE_USER");
 
         return guestRepository.save(guest);
     }
@@ -49,7 +50,7 @@ public class GuestServiceImpl implements GuestService {
     public Guest getGuestById(Long id) {
         return guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found with id: " + id));
+                        new ResourceNotFoundException("Guest not found"));
     }
 
     @Override
@@ -62,27 +63,22 @@ public class GuestServiceImpl implements GuestService {
 
         Guest existing = guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found with id: " + id));
+                        new ResourceNotFoundException("Guest not found"));
 
-        if (update.getFullName() != null) {
+        if (update.getFullName() != null)
             existing.setFullName(update.getFullName());
-        }
 
-        if (update.getPhoneNumber() != null) {
+        if (update.getPhoneNumber() != null)
             existing.setPhoneNumber(update.getPhoneNumber());
-        }
 
-        if (update.getVerified() != null) {
+        if (update.getVerified() != null)
             existing.setVerified(update.getVerified());
-        }
 
-        if (update.getActive() != null) {
+        if (update.getActive() != null)
             existing.setActive(update.getActive());
-        }
 
-        if (update.getRole() != null) {
+        if (update.getRole() != null)
             existing.setRole(update.getRole());
-        }
 
         return guestRepository.save(existing);
     }
@@ -92,7 +88,7 @@ public class GuestServiceImpl implements GuestService {
 
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found with id: " + id));
+                        new ResourceNotFoundException("Guest not found"));
 
         guest.setActive(false);
         guestRepository.save(guest);

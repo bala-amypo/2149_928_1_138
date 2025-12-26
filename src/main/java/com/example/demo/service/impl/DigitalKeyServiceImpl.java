@@ -1,10 +1,24 @@
+package com.example.demo.service.impl;
+
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.DigitalKey;
+import com.example.demo.model.RoomBooking;
+import com.example.demo.repository.DigitalKeyRepository;
+import com.example.demo.repository.RoomBookingRepository;
+import com.example.demo.service.DigitalKeyService;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.UUID;
+
 @Service
 public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    // ✅ SINGLE constructor (portal-safe)
     public DigitalKeyServiceImpl(
             DigitalKeyRepository keyRepository,
             RoomBookingRepository bookingRepository) {
@@ -23,21 +37,13 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
 
-        // ❌ Booking inactive
         if (!Boolean.TRUE.equals(booking.getActive())) {
             throw new IllegalStateException("booking inactive");
         }
 
-        if (booking.getCheckOutDate() == null) {
-            throw new IllegalStateException("checkout date missing");
-        }
-
-        // ✅ Deactivate existing active key AND SAVE IT
+        // deactivate existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .ifPresent(existing -> {
-                    existing.setActive(false);
-                    keyRepository.save(existing);
-                });
+                .ifPresent(k -> k.setActive(false));
 
         Instant issuedAt = Instant.now();
 
@@ -47,7 +53,6 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
 
-        // ✅ Safety guard for edge cases
         if (!expiresAt.isAfter(issuedAt)) {
             expiresAt = issuedAt.plusSeconds(60);
         }

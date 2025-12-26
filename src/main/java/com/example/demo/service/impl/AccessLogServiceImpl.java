@@ -7,7 +7,9 @@ import com.example.demo.service.AccessLogService;
 
 import java.sql.Timestamp;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service 
 public class AccessLogServiceImpl implements AccessLogService {
 
     private final AccessLogRepository repo;

@@ -24,7 +24,7 @@
 
     <dependencies>
 
-        <!-- Spring Core -->
+        <!-- Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -80,27 +80,10 @@
             <version>2.3.0</version>
         </dependency>
 
-        <!-- Testing -->
+        <!-- TESTING (THIS IS CRITICAL) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>7.9.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -114,27 +97,10 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <!-- FORCE TestNG -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                    <providers>
-                        <provider>
-                            <name>testng</name>
-                        </provider>
-                    </providers>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 

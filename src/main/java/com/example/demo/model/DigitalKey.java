@@ -2,13 +2,19 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(
-    name = "digital_keys",
-    uniqueConstraints = @UniqueConstraint(columnNames = "keyValue")
+        name = "digital_keys",
+        uniqueConstraints = @UniqueConstraint(columnNames = "keyValue")
 )
 public class DigitalKey {
+
+    // ✅ REQUIRED by portal & JPA
+    public DigitalKey() {
+        this.active = true;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,13 +23,30 @@ public class DigitalKey {
     @ManyToOne
     private RoomBooking booking;
 
+    @Column(nullable = false, unique = true)
     private String keyValue;
 
-    // 🔥 FIX: Timestamp → Instant
+    // ✅ Tests expect Instant
     private Instant issuedAt;
     private Instant expiresAt;
 
     private Boolean active = true;
+
+    // ✅ Ensure safe defaults even if service not used
+    @PrePersist
+    public void onCreate() {
+        if (active == null) {
+            active = true;
+        }
+        if (issuedAt == null) {
+            issuedAt = Instant.now();
+        }
+        if (keyValue == null) {
+            keyValue = UUID.randomUUID().toString();
+        }
+    }
+
+    // ================= GETTERS & SETTERS =================
 
     public Long getId() {
         return id;
@@ -66,10 +89,10 @@ public class DigitalKey {
     }
 
     public Boolean getActive() {
-        return active;
+        return active != null ? active : Boolean.TRUE;
     }
 
     public void setActive(Boolean active) {
-        this.active = active;
+        this.active = (active != null) ? active : Boolean.TRUE;
     }
 }

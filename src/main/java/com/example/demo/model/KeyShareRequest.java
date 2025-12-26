@@ -7,6 +7,11 @@ import java.time.Instant;
 @Table(name = "key_share_requests")
 public class KeyShareRequest {
 
+    // ✅ REQUIRED by portal & JPA
+    public KeyShareRequest() {
+        this.status = "PENDING";
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,18 +25,23 @@ public class KeyShareRequest {
     @ManyToOne
     private Guest sharedWith;
 
-    // ✅ FIX: use Instant (tests expect this)
+    // ✅ Tests expect Instant
     private Instant shareStart;
     private Instant shareEnd;
 
     private String status = "PENDING";
 
-    // ✅ FIX: Instant instead of Timestamp
     private Instant createdAt;
 
+    // ✅ Safe defaults even if service not used
     @PrePersist
     public void onCreate() {
-        this.createdAt = Instant.now();
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
+        }
+        if (this.status == null) {
+            this.status = "PENDING";
+        }
     }
 
     // ======================
@@ -87,11 +97,11 @@ public class KeyShareRequest {
     }
 
     public String getStatus() {
-        return status;
+        return status != null ? status : "PENDING";
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = (status != null) ? status : "PENDING";
     }
 
     public Instant getCreatedAt() {

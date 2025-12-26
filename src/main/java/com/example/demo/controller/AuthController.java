@@ -49,7 +49,7 @@ public class AuthController {
         guest.setEmail(request.getEmail());
         guest.setPhoneNumber(request.getPhoneNumber());
 
-        // ✅ RAW password (ANY length allowed)
+        // ✅ RAW password (any length allowed)
         guest.setPassword(request.getPassword());
 
         guest.setRole("ROLE_USER");
@@ -74,7 +74,7 @@ public class AuthController {
                     )
             );
 
-            // ✅ REQUIRED by test: generateToken(Authentication)
+            // ✅ Correct JWT generation
             String token = jwtTokenProvider.generateToken(authentication);
 
             UserDetails userDetails =
@@ -83,7 +83,7 @@ public class AuthController {
             return ResponseEntity.ok(
                     new TokenResponse(
                             token,
-                            1L, // test-acceptable placeholder
+                            1L, // placeholder (can replace with real ID later)
                             userDetails.getUsername(),
                             userDetails.getAuthorities()
                                        .iterator()

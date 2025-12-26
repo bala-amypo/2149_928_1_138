@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +26,26 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // ===================== REQUIRED METHODS =====================
+    // ===================== REQUIRED BY TEST =====================
+
+    // ✅ REQUIRED SIGNATURE
+    public String generateToken(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return generateTokenFromUser(userDetails);
+    }
+
+    // ===================== INTERNAL TOKEN CREATION =====================
+
+    private String generateTokenFromUser(UserDetails userDetails) {
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    // ===================== VALIDATION =====================
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -36,18 +56,7 @@ public class JwtTokenProvider {
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    // ===================== TOKEN GENERATION =====================
-
-    public String generateToken(UserDetails userDetails) {
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    // ===================== INTERNAL HELPERS =====================
+    // ===================== HELPERS =====================
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

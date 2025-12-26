@@ -9,6 +9,7 @@ import com.example.demo.service.GuestService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationConfiguration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,18 +21,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final GuestService guestService;
+    private final AuthenticationManager authenticationManager;
 
     public AuthController(
-            AuthenticationManager authenticationManager,
             JwtTokenProvider jwtTokenProvider,
-            GuestService guestService
-    ) {
-        this.authenticationManager = authenticationManager;
+            GuestService guestService,
+            AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
         this.jwtTokenProvider = jwtTokenProvider;
         this.guestService = guestService;
+        this.authenticationManager =
+                authenticationConfiguration.getAuthenticationManager();
     }
 
     // ================= REGISTER =================
@@ -49,14 +51,14 @@ public class AuthController {
         guest.setEmail(request.getEmail());
         guest.setPhoneNumber(request.getPhoneNumber());
 
-        // ✅ RAW password only (ANY length allowed)
+        // ✅ RAW password (ANY length allowed)
         guest.setPassword(request.getPassword());
 
         guest.setRole("ROLE_USER");
         guest.setVerified(true);
         guest.setActive(true);
 
-        // ✅ password will be encoded INSIDE service
+        // ✅ Password encoded INSIDE service
         guestService.createGuest(guest);
 
         return ResponseEntity.ok("User registered successfully");
@@ -74,7 +76,7 @@ public class AuthController {
                     )
             );
 
-            // ✅ CORRECT TOKEN GENERATION
+            // ✅ CORRECT token generation
             String token = jwtTokenProvider.generateToken(authentication);
 
             UserDetails userDetails =

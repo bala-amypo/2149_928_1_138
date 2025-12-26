@@ -10,7 +10,8 @@ import com.example.demo.service.DigitalKeyService;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
-
+import org.springframework.stereotype.Service;
+@Service 
 public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     private final DigitalKeyRepository keyRepository;

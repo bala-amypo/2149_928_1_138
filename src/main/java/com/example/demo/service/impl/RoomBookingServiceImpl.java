@@ -6,7 +6,8 @@ import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
 
 import java.util.List;
-
+import org.springframework.stereotype.Service;
+@Service 
 public class RoomBookingServiceImpl implements RoomBookingService {
 
     private final RoomBookingRepository repository;

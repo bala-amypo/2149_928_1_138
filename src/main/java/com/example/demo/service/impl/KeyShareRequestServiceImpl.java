@@ -6,7 +6,8 @@ import com.example.demo.repository.*;
 import com.example.demo.service.KeyShareRequestService;
 
 import java.util.List;
-
+import org.springframework.stereotype.Service;
+@Service 
 public class KeyShareRequestServiceImpl implements KeyShareRequestService {
 
     private final KeyShareRequestRepository repo;

@@ -22,12 +22,12 @@ public class AccessLogController {
     }
 
     @GetMapping("/key/{keyId}")
-    public List<AccessLog> getForKey(@PathVariable Long keyId) {
+    public List<AccessLog> byKey(@PathVariable Long keyId) {
         return service.getLogsForKey(keyId);
     }
 
     @GetMapping("/guest/{guestId}")
-    public List<AccessLog> getForGuest(@PathVariable Long guestId) {
+    public List<AccessLog> byGuest(@PathVariable Long guestId) {
         return service.getLogsForGuest(guestId);
     }
 }

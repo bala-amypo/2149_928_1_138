@@ -10,29 +10,29 @@ import java.util.List;
 @RequestMapping("/api/digital-keys")
 public class DigitalKeyController {
 
-    private final DigitalKeyService digitalKeyService;
+    private final DigitalKeyService service;
 
-    public DigitalKeyController(DigitalKeyService digitalKeyService) {
-        this.digitalKeyService = digitalKeyService;
+    public DigitalKeyController(DigitalKeyService service) {
+        this.service = service;
     }
 
     @PostMapping("/generate/{bookingId}")
     public DigitalKey generate(@PathVariable Long bookingId) {
-        return digitalKeyService.generateKey(bookingId);
+        return service.generateKey(bookingId);
     }
 
     @GetMapping("/{id}")
-    public DigitalKey getById(@PathVariable Long id) {
-        return digitalKeyService.getKeyById(id);
+    public DigitalKey get(@PathVariable Long id) {
+        return service.getKeyById(id);
     }
 
     @GetMapping("/booking/{bookingId}")
-    public DigitalKey getActiveForBooking(@PathVariable Long bookingId) {
-        return digitalKeyService.getActiveKeyForBooking(bookingId);
+    public DigitalKey getActive(@PathVariable Long bookingId) {
+        return service.getActiveKeyForBooking(bookingId);
     }
 
     @GetMapping("/guest/{guestId}")
-    public List<DigitalKey> getForGuest(@PathVariable Long guestId) {
-        return digitalKeyService.getKeysForGuest(guestId);
+    public List<DigitalKey> getByGuest(@PathVariable Long guestId) {
+        return service.getKeysForGuest(guestId);
     }
 }

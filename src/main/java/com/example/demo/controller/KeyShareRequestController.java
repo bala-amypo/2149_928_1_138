@@ -21,15 +21,15 @@ public class KeyShareRequestController {
         return service.createShareRequest(request);
     }
 
+    @GetMapping("/{id}")
+    public KeyShareRequest get(@PathVariable Long id) {
+        return service.getShareRequestById(id);
+    }
+
     @PutMapping("/{id}/status")
     public KeyShareRequest updateStatus(@PathVariable Long id,
                                         @RequestParam String status) {
         return service.updateStatus(id, status);
-    }
-
-    @GetMapping("/{id}")
-    public KeyShareRequest getById(@PathVariable Long id) {
-        return service.getShareRequestById(id);
     }
 
     @GetMapping("/shared-by/{guestId}")

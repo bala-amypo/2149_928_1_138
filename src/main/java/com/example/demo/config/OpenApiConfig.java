@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.Components;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,7 +17,6 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
 
-        // 🔐 JWT Bearer Security Scheme
         SecurityScheme bearerAuth = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
@@ -27,15 +27,14 @@ public class OpenApiConfig {
                         .title("Hotel Digital Key Share API")
                         .description("JWT secured API for hotel digital key sharing")
                         .version("1.0"))
-                // ✅ OPTIONAL: server URL (remove if not needed)
+                // ✅ Optional server (Swagger still works without it)
                 .servers(List.of(
-                        new Server().url("https://9163.408procr.amypo.ai/")
+                        new Server().url("http://localhost:9001")
                 ))
-                // 🔒 Apply JWT globally
+                // 🔐 Apply JWT globally
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(
-                        new io.swagger.v3.oas.models.Components()
-                                .addSecuritySchemes("bearerAuth", bearerAuth)
+                        new Components().addSecuritySchemes("bearerAuth", bearerAuth)
                 );
     }
 }

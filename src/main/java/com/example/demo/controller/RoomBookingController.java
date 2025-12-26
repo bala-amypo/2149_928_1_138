@@ -10,35 +10,34 @@ import java.util.List;
 @RequestMapping("/api/bookings")
 public class RoomBookingController {
 
-    private final RoomBookingService bookingService;
+    private final RoomBookingService service;
 
-    public RoomBookingController(RoomBookingService bookingService) {
-        this.bookingService = bookingService;
+    public RoomBookingController(RoomBookingService service) {
+        this.service = service;
     }
 
     @PostMapping
     public RoomBooking create(@RequestBody RoomBooking booking) {
-        return bookingService.createBooking(booking);
-    }
-
-    @PutMapping("/{id}")
-    public RoomBooking update(@PathVariable Long id,
-                              @RequestBody RoomBooking booking) {
-        return bookingService.updateBooking(id, booking);
+        return service.createBooking(booking);
     }
 
     @GetMapping("/{id}")
-    public RoomBooking getById(@PathVariable Long id) {
-        return bookingService.getBookingById(id);
+    public RoomBooking get(@PathVariable Long id) {
+        return service.getBookingById(id);
     }
 
     @GetMapping("/guest/{guestId}")
-    public List<RoomBooking> getForGuest(@PathVariable Long guestId) {
-        return bookingService.getBookingsForGuest(guestId);
+    public List<RoomBooking> getByGuest(@PathVariable Long guestId) {
+        return service.getBookingsForGuest(guestId);
+    }
+
+    @PutMapping("/{id}")
+    public RoomBooking update(@PathVariable Long id, @RequestBody RoomBooking booking) {
+        return service.updateBooking(id, booking);
     }
 
     @PutMapping("/{id}/deactivate")
     public void deactivate(@PathVariable Long id) {
-        bookingService.deactivateBooking(id);
+        service.deactivateBooking(id);
     }
 }

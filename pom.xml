@@ -78,11 +78,21 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Spring Test utilities ONLY (NO JUNIT) -->
+        <!-- ✅ SPRING TEST (KEEP, BUT REMOVE JUNIT) -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Mockito -->
@@ -93,7 +103,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- TestNG (MANDATORY) -->
+        <!-- ✅ TESTNG -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -106,14 +116,13 @@
     <build>
         <plugins>
 
-            <!-- FORCE TESTNG -->
+            <!-- ✅ FORCE TESTNG -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
-                    <testFailureIgnore>false</testFailureIgnore>
                     <providers>
                         <provider>
                             <name>testng</name>

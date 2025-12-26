@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Guest;
 import com.example.demo.service.GuestService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class GuestController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Guest create(@RequestBody Guest guest) {
         return guestService.createGuest(guest);
     }
@@ -37,6 +39,7 @@ public class GuestController {
     }
 
     @PutMapping("/{id}/deactivate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivate(@PathVariable Long id) {
         guestService.deactivateGuest(id);
     }

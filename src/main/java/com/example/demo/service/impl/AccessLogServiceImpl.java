@@ -12,7 +12,6 @@ import com.example.demo.repository.KeyShareRequestRepository;
 import com.example.demo.service.AccessLogService;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 
@@ -38,11 +37,11 @@ public class AccessLogServiceImpl implements AccessLogService {
     @Override
     public AccessLog createLog(AccessLog log) {
 
-        Timestamp now = Timestamp.from(Instant.now());
+        Instant now = Instant.now();
 
-        // ❌ Future access blocked
-        if (log.getAccessTime().after(now)) {
-            throw new IllegalArgumentException("future access");
+        // ❌ Block future access (TEST EXPECTS THIS MESSAGE)
+        if (log.getAccessTime().isAfter(now)) {
+            throw new IllegalArgumentException("future access not allowed");
         }
 
         // ✅ Fetch DigitalKey
@@ -55,7 +54,8 @@ public class AccessLogServiceImpl implements AccessLogService {
         }
 
         // ❌ Key expired
-        if (key.getExpiresAt() != null && now.after(key.getExpiresAt())) {
+        if (key.getExpiresAt() != null &&
+                key.getExpiresAt().toInstant().isBefore(now)) {
             return deny(log, key, "key expired");
         }
 
@@ -84,10 +84,22 @@ public class AccessLogServiceImpl implements AccessLogService {
                     shareRepo.findBySharedWithId(guest.getId());
 
             for (KeyShareRequest share : shares) {
-                if (share.getDigitalKey().getId().equals(key.getId()) &&
-                    "APPROVED".equals(share.getStatus()) &&
-                    !log.getAccessTime().before(share.getShareStart()) &&
-                    !log.getAccessTime().after(share.getShareEnd())) {
+
+                boolean sameKey =
+                        share.getDigitalKey().getId().equals(key.getId());
+
+                boolean approved =
+                        "APPROVED".equals(share.getStatus());
+
+                boolean withinWindow =
+                        !log.getAccessTime().isBefore(
+                                share.getShareStart().toInstant()
+                        ) &&
+                        !log.getAccessTime().isAfter(
+                                share.getShareEnd().toInstant()
+                        );
+
+                if (sameKey && approved && withinWindow) {
                     hasValidShare = true;
                     break;
                 }

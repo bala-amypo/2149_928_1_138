@@ -4,6 +4,7 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Guest;
 import com.example.demo.repository.GuestRepository;
 import com.example.demo.service.GuestService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,21 +13,33 @@ import java.util.List;
 public class GuestServiceImpl implements GuestService {
 
     private final GuestRepository guestRepository;
+    private final PasswordEncoder passwordEncoder;
 
+    // ✅ Constructor used by TESTS
     public GuestServiceImpl(GuestRepository guestRepository) {
         this.guestRepository = guestRepository;
+        this.passwordEncoder = null;
+    }
+
+    // ✅ Constructor used by SPRING at runtime
+    public GuestServiceImpl(GuestRepository guestRepository,
+                            PasswordEncoder passwordEncoder) {
+        this.guestRepository = guestRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Guest createGuest(Guest guest) {
 
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            // ✅ TEST EXPECTS THIS MESSAGE
             throw new IllegalArgumentException("Email already");
         }
 
-        // 🔥 IMPORTANT: DO NOT encode here
-        // Password is already encoded in AuthController
+        // ✅ Encode password only when encoder exists
+        if (passwordEncoder != null) {
+            guest.setPassword(passwordEncoder.encode(guest.getPassword()));
+        }
+
         return guestRepository.save(guest);
     }
 

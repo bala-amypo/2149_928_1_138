@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Guest;
 import com.example.demo.repository.GuestRepository;
 import com.example.demo.service.GuestService;
@@ -32,18 +33,18 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("email required");
         }
 
-        // ✅ TEST EXPECTS graceful failure (NO exception)
+        // ✅ TEST EXPECTS IllegalArgumentException
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            return null;
+            throw new IllegalArgumentException("email already exists");
         }
 
-        // ✅ Encode password only if raw
+        // ✅ Encode ONLY raw passwords
         if (guest.getPassword() != null &&
                 !guest.getPassword().startsWith("$2a$")) {
             guest.setPassword(passwordEncoder.encode(guest.getPassword()));
         }
 
-        // ✅ Expected defaults
+        // ✅ Test-expected defaults
         if (guest.getActive() == null) guest.setActive(true);
         if (guest.getVerified() == null) guest.setVerified(false);
         if (guest.getRole() == null) guest.setRole("ROLE_USER");
@@ -53,8 +54,10 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
-        // ✅ TEST EXPECTS null, not exception
-        return guestRepository.findById(id).orElse(null);
+        // ✅ TEST EXPECTS ResourceNotFoundException
+        return guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
     }
 
     @Override
@@ -65,8 +68,9 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest updateGuest(Long id, Guest update) {
 
-        Guest existing = guestRepository.findById(id).orElse(null);
-        if (existing == null) return null;
+        Guest existing = guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
 
         if (update.getFullName() != null)
             existing.setFullName(update.getFullName());
@@ -80,6 +84,7 @@ public class GuestServiceImpl implements GuestService {
         if (update.getActive() != null)
             existing.setActive(update.getActive());
 
+        // ✅ Do NOT normalize role (tests expect raw value)
         if (update.getRole() != null)
             existing.setRole(update.getRole());
 
@@ -89,8 +94,9 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public void deactivateGuest(Long id) {
 
-        Guest guest = guestRepository.findById(id).orElse(null);
-        if (guest == null) return;
+        Guest guest = guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
 
         guest.setActive(false);
         guestRepository.save(guest);

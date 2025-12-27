@@ -100,25 +100,28 @@
 
     </dependencies>
 
-    <build>
-        <plugins>
+ <build>
+    <plugins>
 
-            <!-- Tell Maven to use TestNG -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                    <providers>
-                        <provider>
-                            <name>testng</name>
-                        </provider>
-                    </providers>
-                </configuration>
-            </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.2.5</version>
+            <configuration>
+                <useModulePath>false</useModulePath>
 
-        </plugins>
-    </build>
+                <!-- FORCE TestNG (disables JUnit Platform auto-detection) -->
+                <testNGArtifactName>org.testng:testng</testNGArtifactName>
+
+                <!-- Pick up your existing TestNG tests -->
+                <includes>
+                    <include>**/*.java</include>
+                </includes>
+            </configuration>
+        </plugin>
+
+    </plugins>
+</build>
+
 
 </project>

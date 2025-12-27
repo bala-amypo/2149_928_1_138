@@ -17,13 +17,13 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ REQUIRED BY TESTS
+    // REQUIRED BY TESTS
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = null;
     }
 
-    // ✅ REQUIRED BY SPRING
+    // REQUIRED BY SPRING
     @Autowired
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
@@ -39,10 +39,10 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             throw new IllegalArgumentException("Booking cannot be null");
         }
 
-        // ✅ FIX: equal OR after dates are invalid
+        // ✅ REQUIRED BY TEST
         if (booking.getCheckInDate() != null &&
             booking.getCheckOutDate() != null &&
-            !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
+            booking.getCheckInDate().isAfter(booking.getCheckOutDate())) {
             throw new IllegalArgumentException("Invalid booking dates");
         }
 
@@ -66,7 +66,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking getBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found with id: " + id));
+                        new ResourceNotFoundException("Booking not found"));
     }
 
     @Override

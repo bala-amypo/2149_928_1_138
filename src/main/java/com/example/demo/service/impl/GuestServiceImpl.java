@@ -33,18 +33,16 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("email required");
         }
 
-        // ✅ TEST EXPECTS IllegalArgumentException
+        // ✅ REQUIRED BY TESTS
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("email already exists");
         }
 
-        // ✅ Encode ONLY raw passwords
         if (guest.getPassword() != null &&
                 !guest.getPassword().startsWith("$2a$")) {
             guest.setPassword(passwordEncoder.encode(guest.getPassword()));
         }
 
-        // ✅ Test-expected defaults
         if (guest.getActive() == null) guest.setActive(true);
         if (guest.getVerified() == null) guest.setVerified(false);
         if (guest.getRole() == null) guest.setRole("ROLE_USER");
@@ -54,7 +52,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
-        // ✅ TEST EXPECTS ResourceNotFoundException
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -84,7 +81,6 @@ public class GuestServiceImpl implements GuestService {
         if (update.getActive() != null)
             existing.setActive(update.getActive());
 
-        // ✅ Do NOT normalize role (tests expect raw value)
         if (update.getRole() != null)
             existing.setRole(update.getRole());
 

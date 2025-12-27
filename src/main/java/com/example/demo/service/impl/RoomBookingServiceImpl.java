@@ -39,10 +39,10 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             throw new IllegalArgumentException("Booking cannot be null");
         }
 
-        // ✅ TEST EXPECTS invalid date check
+        // ✅ FIX: equal OR after dates are invalid
         if (booking.getCheckInDate() != null &&
             booking.getCheckOutDate() != null &&
-            booking.getCheckInDate().isAfter(booking.getCheckOutDate())) {
+            !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
             throw new IllegalArgumentException("Invalid booking dates");
         }
 

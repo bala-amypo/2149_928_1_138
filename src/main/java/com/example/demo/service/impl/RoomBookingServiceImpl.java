@@ -16,16 +16,11 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ Constructor used by TESTS
-    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
-        this.guestRepository = null;
-    }
-
-    // ✅ Constructor used by SPRING
+    // ✅ SINGLE constructor (Spring + tests compatible)
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
             GuestRepository guestRepository) {
+
         this.bookingRepository = bookingRepository;
         this.guestRepository = guestRepository;
     }
@@ -37,19 +32,17 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             throw new IllegalArgumentException("Booking cannot be null");
         }
 
-        if (guestRepository != null) {
-            if (booking.getGuest() == null || booking.getGuest().getId() == null) {
-                throw new IllegalArgumentException("Guest required");
-            }
-
-            Guest guest = guestRepository.findById(booking.getGuest().getId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException("Guest not found"));
-
-            booking.setGuest(guest);
+        if (booking.getGuest() == null || booking.getGuest().getId() == null) {
+            throw new IllegalArgumentException("Guest required");
         }
 
+        Guest guest = guestRepository.findById(booking.getGuest().getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
+
+        booking.setGuest(guest);
         booking.setActive(true);
+
         return bookingRepository.save(booking);
     }
 

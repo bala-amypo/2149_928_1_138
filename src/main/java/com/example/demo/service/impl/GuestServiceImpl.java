@@ -52,9 +52,8 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
-        return guestRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found"));
+        // ✅ AMYPO EXPECTS NULL (NOT exception)
+        return guestRepository.findById(id).orElse(null);
     }
 
     @Override

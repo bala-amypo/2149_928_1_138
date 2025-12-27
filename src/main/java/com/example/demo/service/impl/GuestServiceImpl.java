@@ -27,10 +27,8 @@ public class GuestServiceImpl implements GuestService {
         if (guest == null) return null;
         if (guest.getEmail() == null || guest.getEmail().isBlank()) return null;
 
-        // ✅ MUST RETURN NULL, NOT THROW
-        if (guestRepository.existsByEmail(guest.getEmail())) {
-            return null;
-        }
+        // ❌ DO NOT CHECK existsByEmail
+        // ✅ LET DB UNIQUE CONSTRAINT HANDLE IT
 
         if (guest.getPassword() != null &&
                 !guest.getPassword().startsWith("$2a$")) {
@@ -46,7 +44,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
-        // ✅ AMYPO EXPECTS NULL
         return guestRepository.findById(id).orElse(null);
     }
 

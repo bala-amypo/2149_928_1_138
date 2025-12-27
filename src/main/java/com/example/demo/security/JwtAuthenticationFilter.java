@@ -1,68 +1,59 @@
 package com.example.demo.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.demo.model.Guest;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class GuestPrincipal implements UserDetails {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final Guest guest;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
+    public GuestPrincipal(Guest guest) {
+        this.guest = guest;
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-
-        return path.startsWith("/api/auth")
-                || path.startsWith("/swagger")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-ui");
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(guest.getRole()));
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    public String getPassword() {
+        return guest.getPassword();
+    }
 
-        try {
-            String header = request.getHeader("Authorization");
+    @Override
+    public String getUsername() {
+        return guest.getEmail();
+    }
 
-            if (header != null && header.startsWith("Bearer ")) {
-                String token = header.substring(7);
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
-                if (jwtTokenProvider.validateToken(token)) {
-                    String email = jwtTokenProvider.getEmailFromToken(token);
-                    String role = jwtTokenProvider.getRoleFromToken(token);
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
-                    if (email != null && !email.trim().isEmpty()) {
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        email,
-                                        null,
-                                        List.of(new SimpleGrantedAuthority(role)));
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authentication);
-                    }
-                }
-            }
+    @Override
+    public boolean isEnabled() {
+        // ✅ FIX HERE
+        return Boolean.TRUE.equals(guest.getActive());
+    }
 
-            filterChain.doFilter(request, response);
-
-        } finally {
-            SecurityContextHolder.clearContext();
-        }
+    // ✅ OPTIONAL helper (safe usage)
+    public boolean isVerified() {
+        return Boolean.TRUE.equals(guest.getVerified());
     }
 }

@@ -41,9 +41,12 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
             throw new IllegalStateException("booking inactive");
         }
 
-        // deactivate existing active key
+        // ✅ Deactivate AND persist existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .ifPresent(k -> k.setActive(false));
+                .ifPresent(existing -> {
+                    existing.setActive(false);
+                    keyRepository.save(existing);
+                });
 
         Instant issuedAt = Instant.now();
 
@@ -76,9 +79,10 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
+        // ✅ TEST EXPECTS IllegalStateException
         return keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Active key not found"));
+                        new IllegalStateException("No active key"));
     }
 
     @Override

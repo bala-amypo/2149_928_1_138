@@ -6,6 +6,7 @@ import com.example.demo.repository.GuestRepository;
 import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,15 +20,12 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ REQUIRED BY MOCK TESTS
-    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
-        this.guestRepository = null;
-    }
+    // ✅ SINGLE CONSTRUCTOR (FIXES CONTEXT FAILURE)
+    @Autowired
+    public RoomBookingServiceImpl(
+            RoomBookingRepository bookingRepository,
+            GuestRepository guestRepository) {
 
-    // ✅ REQUIRED BY SPRING
-    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository,
-                                  GuestRepository guestRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = guestRepository;
     }
@@ -39,12 +37,10 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             throw new IllegalArgumentException();
         }
 
-        // ✅ GUEST MUST EXIST (NORMALIZATION)
         if (booking.getGuest() == null || booking.getGuest().getId() == null) {
             throw new IllegalArgumentException();
         }
 
-        // ✅ DATE VALIDATION
         LocalDate in = booking.getCheckInDate();
         LocalDate out = booking.getCheckOutDate();
 
@@ -52,7 +48,6 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             throw new IllegalArgumentException();
         }
 
-        // ✅ ROOM NUMBER MUST BE ATOMIC (1NF)
         if (booking.getRoomNumber() == null ||
             booking.getRoomNumber().trim().isEmpty()) {
             throw new IllegalArgumentException();
@@ -72,9 +67,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        RoomBooking existing = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
+        RoomBooking existing = getBookingById(id);
 
         LocalDate newIn = update.getCheckInDate() != null
                 ? update.getCheckInDate()
@@ -84,7 +77,6 @@ public class RoomBookingServiceImpl implements RoomBookingService {
                 ? update.getCheckOutDate()
                 : existing.getCheckOutDate();
 
-        // ✅ DATE CONSISTENCY CHECK
         if (newIn == null || newOut == null || !newIn.isBefore(newOut)) {
             throw new IllegalArgumentException();
         }
@@ -118,7 +110,9 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             return Collections.emptyList();
         }
 
-        List<RoomBooking> bookings = bookingRepository.findByGuestId(guestId);
+        List<RoomBooking> bookings =
+                bookingRepository.findByGuestId(guestId);
+
         return bookings != null ? bookings : Collections.emptyList();
     }
 }

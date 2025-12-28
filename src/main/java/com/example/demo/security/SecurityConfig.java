@@ -22,13 +22,15 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(
-            CustomUserDetailsService userDetailsService,
-            JwtAuthenticationFilter jwtAuthenticationFilter
-    ) {
-        this.userDetailsService = userDetailsService;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
+public SecurityConfig(
+        JwtTokenProvider jwtTokenProvider,
+        CustomUserDetailsService userDetailsService,
+        JwtAuthenticationFilter jwtAuthenticationFilter) {
+
+    this.jwtTokenProvider = jwtTokenProvider;
+    this.userDetailsService = userDetailsService;
+    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+}
 
     // ✅ REQUIRED BY TESTS
     @Bean
@@ -74,9 +76,10 @@ public class SecurityConfig {
                 .anyRequest().permitAll() // REQUIRED BY TEST HARNESS
             )
             .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
-            );
+    jwtAuthenticationFilter,
+    UsernamePasswordAuthenticationFilter.class
+)
+
 
         return http.build();
     }

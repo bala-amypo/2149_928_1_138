@@ -21,37 +21,38 @@ public class GuestServiceImpl implements GuestService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
-    public Guest createGuest(Guest guest) {
+@Override
+public Guest createGuest(Guest guest) {
 
-        if (guest == null)
-            throw new IllegalArgumentException("guest required");
+    if (guest == null)
+        throw new IllegalArgumentException("guest required");
 
-        if (guest.getEmail() == null || guest.getEmail().isBlank())
-            throw new IllegalArgumentException("email required");
+    if (guest.getEmail() == null || guest.getEmail().isBlank())
+        throw new IllegalArgumentException("email required");
 
-        // ✅ REQUIRED BY 2 FAILING TESTS
-        if (guestRepository.existsByEmail(guest.getEmail()))
-            throw new IllegalArgumentException("email already exists");
+    // ✅ REQUIRED BY 2 TESTS
+    if (guestRepository.existsByEmail(guest.getEmail()))
+        throw new IllegalArgumentException("email already exists");
 
-        if (guest.getPassword() != null &&
-                !guest.getPassword().startsWith("$2a$")) {
-            guest.setPassword(passwordEncoder.encode(guest.getPassword()));
-        }
-
-        if (guest.getActive() == null) guest.setActive(true);
-        if (guest.getVerified() == null) guest.setVerified(false);
-        if (guest.getRole() == null) guest.setRole("ROLE_USER");
-
-        return guestRepository.save(guest);
+    if (guest.getPassword() != null &&
+            !guest.getPassword().startsWith("$2a$")) {
+        guest.setPassword(passwordEncoder.encode(guest.getPassword()));
     }
 
-    @Override
-    public Guest getGuestById(Long id) {
-        return guestRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found"));
-    }
+    if (guest.getActive() == null) guest.setActive(true);
+    if (guest.getVerified() == null) guest.setVerified(false);
+    if (guest.getRole() == null) guest.setRole("ROLE_USER");
+
+    return guestRepository.save(guest);
+}
+
+@Override
+public Guest getGuestById(Long id) {
+    return guestRepository.findById(id)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Guest not found"));
+}
+
 
     @Override
     public List<Guest> getAllGuests() {

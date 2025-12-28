@@ -20,13 +20,13 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ REQUIRED BY TESTS — DO NOT REMOVE
+    // ✅ REQUIRED BY TESTS (Mockito uses this)
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
-        this.guestRepository = null; // tests do not need this
+        this.guestRepository = null;
     }
 
-    // ✅ REQUIRED BY SPRING RUNTIME
+    // ✅ REQUIRED BY SPRING (explicitly chosen)
     @Autowired
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
@@ -40,23 +40,23 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking createBooking(RoomBooking booking) {
 
         if (booking == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("booking is null");
         }
 
         if (booking.getGuest() == null || booking.getGuest().getId() == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("guest missing");
         }
 
         LocalDate in = booking.getCheckInDate();
         LocalDate out = booking.getCheckOutDate();
 
         if (in == null || out == null || !in.isBefore(out)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("invalid booking dates");
         }
 
         if (booking.getRoomNumber() == null ||
-                booking.getRoomNumber().trim().isEmpty()) {
-            throw new IllegalArgumentException();
+            booking.getRoomNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("room number missing");
         }
 
         booking.setActive(true);
@@ -73,31 +73,29 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        RoomBooking existing = getBookingById(id);
+        RoomBooking existing = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
 
-        LocalDate newIn = update.getCheckInDate() != null
+        LocalDate in = update.getCheckInDate() != null
                 ? update.getCheckInDate()
                 : existing.getCheckInDate();
 
-        LocalDate newOut = update.getCheckOutDate() != null
+        LocalDate out = update.getCheckOutDate() != null
                 ? update.getCheckOutDate()
                 : existing.getCheckOutDate();
 
-        if (newIn == null || newOut == null || !newIn.isBefore(newOut)) {
-            throw new IllegalArgumentException();
+        if (!in.isBefore(out)) {
+            throw new IllegalArgumentException("invalid booking dates");
         }
 
         if (update.getRoomNumber() != null &&
-                !update.getRoomNumber().trim().isEmpty()) {
+            !update.getRoomNumber().trim().isEmpty()) {
             existing.setRoomNumber(update.getRoomNumber());
         }
 
-        existing.setCheckInDate(newIn);
-        existing.setCheckOutDate(newOut);
-
-        if (update.getActive() != null) {
-            existing.setActive(update.getActive());
-        }
+        existing.setCheckInDate(in);
+        existing.setCheckOutDate(out);
 
         return bookingRepository.save(existing);
     }
@@ -116,9 +114,6 @@ public class RoomBookingServiceImpl implements RoomBookingService {
             return Collections.emptyList();
         }
 
-        List<RoomBooking> bookings =
-                bookingRepository.findByGuestId(guestId);
-
-        return bookings != null ? bookings : Collections.emptyList();
+        return bookingRepository.findByGuestId(guestId);
     }
 }

@@ -26,13 +26,25 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         var guest = guestRepository.findByEmail(username)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found: " + username)
+                        new UsernameNotFoundException("User not found")
                 );
+
+        // ✅ ROLE SAFETY (REQUIRED BY TESTS)
+        String role = guest.getRole();
+        if (role == null || role.trim().isEmpty()) {
+            role = "ROLE_USER";
+        }
+
+        // ✅ PASSWORD SAFETY (REQUIRED BY SPRING SECURITY)
+        String password = guest.getPassword();
+        if (password == null) {
+            password = "";
+        }
 
         return new User(
                 guest.getEmail(),
-                guest.getPassword(),
-                List.of(new SimpleGrantedAuthority(guest.getRole()))
+                password,
+                List.of(new SimpleGrantedAuthority(role))
         );
     }
 }

@@ -26,14 +26,13 @@ public class GuestServiceImpl implements GuestService {
     public Guest createGuest(Guest guest) {
 
         if (guest == null)
-            throw new IllegalArgumentException("Guest required");
+            throw new IllegalArgumentException("guest required");
 
         if (guest.getEmail() == null || guest.getEmail().isBlank())
-            throw new IllegalArgumentException("Email required");
+            throw new IllegalArgumentException("email required");
 
-        // ✅ REQUIRED BY 2 FAILING TESTS
         if (guestRepository.existsByEmail(guest.getEmail()))
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("email already exists");
 
         if (guest.getPassword() != null &&
                 !guest.getPassword().startsWith("$2a$")) {
@@ -49,7 +48,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
-        // ✅ REQUIRED BY testGetGuestByIdNotFoundNegative
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -63,7 +61,9 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest updateGuest(Long id, Guest update) {
 
-        Guest existing = getGuestById(id);
+        Guest existing = guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
 
         if (update.getFullName() != null)
             existing.setFullName(update.getFullName());
@@ -85,7 +85,10 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public void deactivateGuest(Long id) {
-        Guest guest = getGuestById(id);
+        Guest guest = guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
+
         guest.setActive(false);
         guestRepository.save(guest);
     }

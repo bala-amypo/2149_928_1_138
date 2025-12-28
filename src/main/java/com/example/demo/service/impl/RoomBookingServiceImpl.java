@@ -1,10 +1,13 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Guest;
 import com.example.demo.model.RoomBooking;
+import com.example.demo.repository.GuestRepository;
 import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,22 +17,44 @@ import java.util.List;
 public class RoomBookingServiceImpl implements RoomBookingService {
 
     private final RoomBookingRepository bookingRepository;
+    private final GuestRepository guestRepository;
 
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
+        this.guestRepository = null;
+    }
+
+    @Autowired
+    public RoomBookingServiceImpl(
+            RoomBookingRepository bookingRepository,
+            GuestRepository guestRepository) {
+        this.bookingRepository = bookingRepository;
+        this.guestRepository = guestRepository;
     }
 
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
         if (booking == null)
-            throw new IllegalArgumentException("Booking required");
+            throw new IllegalArgumentException("booking required");
 
-        // ✅ REQUIRED BY testCreateBookingInvalidDatesNegative
         if (booking.getCheckInDate() != null &&
             booking.getCheckOutDate() != null &&
             !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
             throw new IllegalArgumentException("Invalid booking dates");
+        }
+
+        if (guestRepository != null) {
+            if (booking.getGuest() == null ||
+                booking.getGuest().getId() == null) {
+                throw new IllegalArgumentException("Guest required");
+            }
+
+            Guest guest = guestRepository.findById(booking.getGuest().getId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("Guest not found"));
+
+            booking.setGuest(guest);
         }
 
         booking.setActive(true);
@@ -46,8 +71,9 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        // ✅ REQUIRED BY testUpdateBookingNonExistingNegative
-        RoomBooking existing = getBookingById(id);
+        RoomBooking existing = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
 
         if (update.getRoomNumber() != null)
             existing.setRoomNumber(update.getRoomNumber());

@@ -19,13 +19,13 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // REQUIRED BY TESTS (mock constructor)
+    // ✅ REQUIRED BY TESTS (mock constructor)
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = null;
     }
 
-    // REQUIRED BY SPRING
+    // ✅ REQUIRED BY SPRING
     @Autowired
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
@@ -37,24 +37,27 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null) return null;
+        if (booking == null) {
+            throw new IllegalArgumentException("booking required");
+        }
 
-        // ✅ STRICT DATE VALIDATION REQUIRED
-        if (booking.getCheckInDate() != null &&
-            booking.getCheckOutDate() != null &&
+        // ✅ REQUIRED BY testCreateBookingInvalidDatesNegative
+        if (booking.getCheckInDate() == null ||
+            booking.getCheckOutDate() == null ||
             !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            return null; // ❗ AMYPO expects NO exception
+            throw new IllegalArgumentException("Invalid booking dates");
         }
 
         if (guestRepository != null) {
-            if (booking.getGuest() == null || booking.getGuest().getId() == null) {
-                return null;
+
+            if (booking.getGuest() == null ||
+                booking.getGuest().getId() == null) {
+                throw new IllegalArgumentException("Guest required");
             }
 
             Guest guest = guestRepository.findById(booking.getGuest().getId())
-                    .orElse(null);
-
-            if (guest == null) return null;
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("Guest not found"));
 
             booking.setGuest(guest);
         }
@@ -65,16 +68,18 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public RoomBooking getBookingById(Long id) {
-        return bookingRepository.findById(id).orElse(null);
+        return bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
     }
 
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        RoomBooking existing = bookingRepository.findById(id).orElse(null);
-
-        // ✅ REQUIRED BY NEGATIVE TEST
-        if (existing == null) return null;
+        // ✅ REQUIRED BY testUpdateBookingNonExistingNegative
+        RoomBooking existing = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
 
         if (update.getRoomNumber() != null)
             existing.setRoomNumber(update.getRoomNumber());
@@ -93,11 +98,12 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public void deactivateBooking(Long id) {
-        RoomBooking booking = bookingRepository.findById(id).orElse(null);
-        if (booking != null) {
-            booking.setActive(false);
-            bookingRepository.save(booking);
-        }
+        RoomBooking booking = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
+
+        booking.setActive(false);
+        bookingRepository.save(booking);
     }
 
     @Override

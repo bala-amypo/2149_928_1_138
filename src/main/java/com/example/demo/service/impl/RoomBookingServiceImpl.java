@@ -8,6 +8,8 @@ import com.example.demo.service.RoomBookingService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -17,13 +19,13 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ USED BY TESTS
+    // ✅ REQUIRED BY MOCK TESTS
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = null;
     }
 
-    // ✅ USED BY SPRING
+    // ✅ REQUIRED BY SPRING
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository,
                                   GuestRepository guestRepository) {
         this.bookingRepository = bookingRepository;
@@ -33,11 +35,27 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null ||
-            booking.getCheckInDate() == null ||
-            booking.getCheckOutDate() == null ||
-            !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("Invalid booking dates");
+        if (booking == null) {
+            throw new IllegalArgumentException();
+        }
+
+        // ✅ GUEST MUST EXIST (NORMALIZATION)
+        if (booking.getGuest() == null || booking.getGuest().getId() == null) {
+            throw new IllegalArgumentException();
+        }
+
+        // ✅ DATE VALIDATION
+        LocalDate in = booking.getCheckInDate();
+        LocalDate out = booking.getCheckOutDate();
+
+        if (in == null || out == null || !in.isBefore(out)) {
+            throw new IllegalArgumentException();
+        }
+
+        // ✅ ROOM NUMBER MUST BE ATOMIC (1NF)
+        if (booking.getRoomNumber() == null ||
+            booking.getRoomNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException();
         }
 
         booking.setActive(true);
@@ -58,17 +76,30 @@ public class RoomBookingServiceImpl implements RoomBookingService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
 
-        if (update.getRoomNumber() != null)
+        LocalDate newIn = update.getCheckInDate() != null
+                ? update.getCheckInDate()
+                : existing.getCheckInDate();
+
+        LocalDate newOut = update.getCheckOutDate() != null
+                ? update.getCheckOutDate()
+                : existing.getCheckOutDate();
+
+        // ✅ DATE CONSISTENCY CHECK
+        if (newIn == null || newOut == null || !newIn.isBefore(newOut)) {
+            throw new IllegalArgumentException();
+        }
+
+        if (update.getRoomNumber() != null &&
+            !update.getRoomNumber().trim().isEmpty()) {
             existing.setRoomNumber(update.getRoomNumber());
+        }
 
-        if (update.getCheckInDate() != null)
-            existing.setCheckInDate(update.getCheckInDate());
+        existing.setCheckInDate(newIn);
+        existing.setCheckOutDate(newOut);
 
-        if (update.getCheckOutDate() != null)
-            existing.setCheckOutDate(update.getCheckOutDate());
-
-        if (update.getActive() != null)
+        if (update.getActive() != null) {
             existing.setActive(update.getActive());
+        }
 
         return bookingRepository.save(existing);
     }
@@ -82,6 +113,12 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public List<RoomBooking> getBookingsForGuest(Long guestId) {
-        return bookingRepository.findByGuestId(guestId);
+
+        if (guestId == null) {
+            return Collections.emptyList();
+        }
+
+        List<RoomBooking> bookings = bookingRepository.findByGuestId(guestId);
+        return bookings != null ? bookings : Collections.emptyList();
     }
 }

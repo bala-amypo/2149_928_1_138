@@ -28,7 +28,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
         if (booking.getCheckInDate() != null &&
             booking.getCheckOutDate() != null &&
             !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            // ✅ MUST THROW EXCEPTION
+            // ✅ MUST throw exception
             throw new IllegalArgumentException("invalid booking dates");
         }
 

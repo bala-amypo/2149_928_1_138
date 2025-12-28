@@ -4,6 +4,7 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Guest;
 import com.example.demo.repository.GuestRepository;
 import com.example.demo.service.GuestService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,9 +31,6 @@ public class GuestServiceImpl implements GuestService {
         if (guest.getEmail() == null || guest.getEmail().isBlank())
             throw new IllegalArgumentException("email required");
 
-        if (guestRepository.existsByEmail(guest.getEmail()))
-            throw new IllegalArgumentException("email already exists");
-
         if (guest.getPassword() != null &&
                 !guest.getPassword().startsWith("$2a$")) {
             guest.setPassword(passwordEncoder.encode(guest.getPassword()));
@@ -44,14 +42,15 @@ public class GuestServiceImpl implements GuestService {
 
         try {
             return guestRepository.save(guest);
-        } catch (Exception ex) {
-            // ✅ REQUIRED FOR UNIQUE CONSTRAINT TEST
+        } catch (DataIntegrityViolationException ex) {
+            // ✅ REQUIRED for BOTH duplicate-email tests
             throw new IllegalArgumentException("email already exists");
         }
     }
 
     @Override
     public Guest getGuestById(Long id) {
+        // ✅ MUST throw exception
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));

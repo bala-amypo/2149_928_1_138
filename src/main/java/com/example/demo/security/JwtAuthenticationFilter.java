@@ -14,17 +14,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
+@Component   // 🔥 THIS FIXES CONTEXT LOAD
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
 
-    // ✅ REQUIRED: constructor injection ONLY
     public JwtAuthenticationFilter(
             JwtTokenProvider jwtTokenProvider,
-            UserDetailsService userDetailsService
-    ) {
+            UserDetailsService userDetailsService) {
+
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
@@ -33,44 +32,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain)
+            throws ServletException, IOException {
 
-        try {
-            String header = request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
-            if (header != null && header.startsWith("Bearer ")) {
-                String token = header.substring(7);
+        if (header != null && header.startsWith("Bearer ")) {
 
-                if (jwtTokenProvider.validateToken(token)) {
+            String token = header.substring(7);
 
-                    String email = jwtTokenProvider.getEmailFromToken(token);
+            if (jwtTokenProvider.validateToken(token)) {
 
-                    if (email != null &&
+                String email = jwtTokenProvider.getEmailFromToken(token);
+
+                if (email != null &&
                         SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                        UserDetails userDetails =
-                                userDetailsService.loadUserByUsername(email);
+                    UserDetails userDetails =
+                            userDetailsService.loadUserByUsername(email);
 
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities()
-                                );
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities());
 
-                        authentication.setDetails(
-                                new WebAuthenticationDetailsSource()
-                                        .buildDetails(request)
-                        );
+                    auth.setDetails(
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(request));
 
-                        SecurityContextHolder.getContext()
-                                             .setAuthentication(authentication);
-                    }
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(auth);
                 }
             }
-        } catch (Exception ignored) {
-            // ✅ REQUIRED: tests expect NO exception leakage
         }
 
         filterChain.doFilter(request, response);

@@ -54,13 +54,14 @@ public class SecurityConfig {
     }
 
     // ✅ REGISTER FILTER AS BEAN
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        JwtAuthenticationFilter filter =
-                new JwtAuthenticationFilter(jwtTokenProvider);
-        filter.setUserDetailsService(userDetailsService);
-        return filter;
-    }
+@Bean
+public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    return new JwtAuthenticationFilter(
+            jwtTokenProvider,
+            userDetailsService
+    );
+}
+
 
     // ✅ SECURITY FILTER CHAIN
     @Bean

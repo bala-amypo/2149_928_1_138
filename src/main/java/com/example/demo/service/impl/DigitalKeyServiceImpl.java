@@ -77,25 +77,28 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     }
 
     @Override
-    public DigitalKey getActiveKeyForBooking(Long bookingId) {
+public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
-        if (bookingId == null) {
-            throw new IllegalArgumentException("Booking ID missing");
-        }
-
-        DigitalKey key = keyRepository
-                .findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Active key not found"));
-
-        // expired key = invalid
-        if (key.getExpiresAt() != null &&
-            key.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Key expired");
-        }
-
-        return key;
+    if (bookingId == null) {
+        return null;
     }
+
+    DigitalKey key = keyRepository
+            .findByBookingIdAndActiveTrue(bookingId)
+            .orElse(null);
+
+    if (key == null) {
+        return null;
+    }
+
+    if (key.getExpiresAt() != null &&
+        key.getExpiresAt().isBefore(Instant.now())) {
+        return null;
+    }
+
+    return key;
+}
+
 
     @Override
     public List<DigitalKey> getKeysForGuest(Long guestId) {

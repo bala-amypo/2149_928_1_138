@@ -22,9 +22,8 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null) {
+        if (booking == null)
             throw new IllegalArgumentException("Booking required");
-        }
 
         // ✅ REQUIRED BY testCreateBookingInvalidDatesNegative
         if (booking.getCheckInDate() != null &&
@@ -48,9 +47,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
         // ✅ REQUIRED BY testUpdateBookingNonExistingNegative
-        RoomBooking existing = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
+        RoomBooking existing = getBookingById(id);
 
         if (update.getRoomNumber() != null)
             existing.setRoomNumber(update.getRoomNumber());

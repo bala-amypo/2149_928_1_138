@@ -24,15 +24,17 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest createGuest(Guest guest) {
 
-        if (guest == null ||
-            guest.getEmail() == null ||
-            guest.getEmail().trim().isEmpty()) {
-            throw new IllegalArgumentException();
+        if (guest == null) {
+            throw new IllegalArgumentException("Guest must not be null");
         }
 
-        // ✅ STRICT duplicate email handling
+        if (guest.getEmail() == null || guest.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email must not be empty");
+        }
+
+        // ✅ REQUIRED BY TESTS: duplicate email must throw IllegalArgumentException WITH message
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Email already exists");
         }
 
         // ✅ PASSWORD MUST ALWAYS BE ENCODED
@@ -68,7 +70,7 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public List<Guest> getAllGuests() {
-        return guestRepository.findAll(); // NEVER null
+        return guestRepository.findAll();
     }
 
     @Override
@@ -76,8 +78,7 @@ public class GuestServiceImpl implements GuestService {
 
         Guest existing = getGuestById(id);
 
-        // ❌ EMAIL IS IMMUTABLE (NORMALIZATION RULE)
-        // DO NOT UPDATE EMAIL
+        // ❌ EMAIL IS IMMUTABLE — DO NOT CHANGE
 
         if (update.getFullName() != null) {
             existing.setFullName(update.getFullName());

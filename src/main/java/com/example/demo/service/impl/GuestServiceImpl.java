@@ -59,17 +59,17 @@ public class GuestServiceImpl implements GuestService {
         return guestRepository.save(guest);
     }
 
-   @Override
-public Guest getGuestById(Long id) {
-    if (id == null) {
-        throw new ResourceNotFoundException("Guest not found");
+    @Override
+    public Guest getGuestById(Long id) {
+
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
+        return guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
     }
-
-    return guestRepository.findById(id)
-            .orElseThrow(() ->
-                    new ResourceNotFoundException("Guest not found"));
-}
-
 
     @Override
     public List<Guest> getAllGuests() {

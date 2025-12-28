@@ -1,104 +1,112 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.model.DigitalKey;
-import com.example.demo.model.RoomBooking;
-import com.example.demo.repository.DigitalKeyRepository;
-import com.example.demo.repository.RoomBookingRepository;
-import com.example.demo.service.DigitalKeyService;
+import com.example.demo.model.Guest;
+import com.example.demo.repository.GuestRepository;
+import com.example.demo.service.GuestService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.UUID;
 
 @Service
-public class DigitalKeyServiceImpl implements DigitalKeyService {
+public class GuestServiceImpl implements GuestService {
 
-    private final DigitalKeyRepository keyRepository;
-    private final RoomBookingRepository bookingRepository;
+    private final GuestRepository guestRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
-                                 RoomBookingRepository bookingRepository) {
-        this.keyRepository = keyRepository;
-        this.bookingRepository = bookingRepository;
+    public GuestServiceImpl(GuestRepository guestRepository,
+                            PasswordEncoder passwordEncoder) {
+        this.guestRepository = guestRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public DigitalKey generateKey(Long bookingId) {
+    public Guest createGuest(Guest guest) {
 
-        if (bookingId == null) {
-            throw new IllegalArgumentException("Booking ID missing");
+        if (guest == null) {
+            throw new IllegalArgumentException("Guest is null");
         }
 
-        RoomBooking booking = bookingRepository.findById(bookingId)
+        if (guest.getEmail() == null || guest.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
+        if (guestRepository.existsByEmail(guest.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        String rawPassword = guest.getPassword();
+        if (rawPassword == null) {
+            rawPassword = "";
+        }
+
+        guest.setPassword(passwordEncoder.encode(rawPassword));
+
+        if (guest.getActive() == null) {
+            guest.setActive(true);
+        }
+
+        if (guest.getVerified() == null) {
+            guest.setVerified(false);
+        }
+
+        if (guest.getRole() == null || guest.getRole().isBlank()) {
+            guest.setRole("ROLE_USER");
+        }
+
+        return guestRepository.save(guest);
+    }
+
+    @Override
+    public Guest getGuestById(Long id) {
+
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
+        return guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
-
-        // ✅ REQUIRED: IllegalStateException WITH MESSAGE
-        if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalStateException("Booking is inactive");
-        }
-
-        // deactivate existing active key
-        keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .ifPresent(k -> {
-                    k.setActive(false);
-                    keyRepository.save(k);
-                });
-
-        Instant issuedAt = Instant.now();
-        Instant expiresAt =
-                booking.getCheckOutDate()
-                        .atTime(23, 59, 59)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant();
-
-        if (!expiresAt.isAfter(issuedAt)) {
-            expiresAt = issuedAt.plusSeconds(60);
-        }
-
-        DigitalKey key = new DigitalKey();
-        key.setBooking(booking);
-        key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(issuedAt);
-        key.setExpiresAt(expiresAt);
-        key.setActive(true);
-
-        return keyRepository.save(key);
+                        new ResourceNotFoundException("Guest not found"));
     }
 
     @Override
-    public DigitalKey getKeyById(Long id) {
-        return keyRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Key not found"));
+    public List<Guest> getAllGuests() {
+        return guestRepository.findAll();
     }
 
     @Override
-    public DigitalKey getActiveKeyForBooking(Long bookingId) {
+    public Guest updateGuest(Long id, Guest update) {
 
-        if (bookingId == null) {
-            throw new IllegalArgumentException("Booking ID missing");
+        Guest existing = getGuestById(id);
+
+        if (update.getFullName() != null) {
+            existing.setFullName(update.getFullName());
         }
 
-        DigitalKey key = keyRepository
-                .findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Active key not found"));
-
-        // expired key = invalid
-        if (key.getExpiresAt() != null &&
-            key.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Key expired");
+        if (update.getPhoneNumber() != null) {
+            existing.setPhoneNumber(update.getPhoneNumber());
         }
 
-        return key;
+        if (update.getVerified() != null) {
+            existing.setVerified(update.getVerified());
+        }
+
+        if (update.getActive() != null) {
+            existing.setActive(update.getActive());
+        }
+
+        if (update.getRole() != null && !update.getRole().isBlank()) {
+            existing.setRole(update.getRole());
+        }
+
+        return guestRepository.save(existing);
     }
 
     @Override
-    public List<DigitalKey> getKeysForGuest(Long guestId) {
-        return keyRepository.findByBookingGuestId(guestId);
+    public void deactivateGuest(Long id) {
+        Guest guest = getGuestById(id);
+        guest.setActive(false);
+        guestRepository.save(guest);
     }
 }

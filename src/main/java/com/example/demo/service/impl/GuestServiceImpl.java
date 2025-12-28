@@ -46,7 +46,7 @@ public class GuestServiceImpl implements GuestService {
 
         try {
             return guestRepository.save(guest);
-        } catch (DataIntegrityViolationException ex) {
+        } catch (DataIntegrityViolationException | RuntimeException ex) {
             // ✅ REQUIRED BY UNIQUE CONSTRAINT TEST
             throw new IllegalArgumentException("email already exists");
         }

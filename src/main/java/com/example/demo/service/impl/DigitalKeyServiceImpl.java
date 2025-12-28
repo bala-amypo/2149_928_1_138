@@ -68,12 +68,15 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         new ResourceNotFoundException("Key not found"));
     }
 
-    @Override
-    public DigitalKey getActiveKeyForBooking(Long bookingId) {
-        return keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Active key not found"));
-    }
+@Override
+public DigitalKey getActiveKeyForBooking(Long bookingId) {
+
+    // ❗ TEST EXPECTS IllegalArgumentException
+    return keyRepository.findByBookingIdAndActiveTrue(bookingId)
+            .orElseThrow(() ->
+                    new IllegalArgumentException("No active key"));
+}
+
 
     @Override
     public List<DigitalKey> getKeysForGuest(Long guestId) {

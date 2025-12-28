@@ -32,7 +32,6 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("email");
         }
 
-        // 🔑 BOTH duplicate tests expect "email"
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("email");
         }
@@ -51,9 +50,15 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
+
+        // 🔴 CRITICAL FIX — prevents blank page
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
         return guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("not found"));
+                        new ResourceNotFoundException("Guest not found"));
     }
 
     @Override
@@ -64,9 +69,13 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest updateGuest(Long id, Guest update) {
 
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
         Guest existing = guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("not found"));
+                        new ResourceNotFoundException("Guest not found"));
 
         if (update.getFullName() != null) existing.setFullName(update.getFullName());
         if (update.getPhoneNumber() != null) existing.setPhoneNumber(update.getPhoneNumber());
@@ -82,9 +91,13 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public void deactivateGuest(Long id) {
 
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("not found"));
+                        new ResourceNotFoundException("Guest not found"));
 
         guest.setActive(false);
         guestRepository.save(guest);

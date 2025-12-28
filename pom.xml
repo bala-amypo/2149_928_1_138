@@ -109,22 +109,27 @@
     <build>
         <plugins>
 
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+        <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.1.2</version>
+    <configuration>
+        <!-- FORCE TESTNG -->
+        <provider>testng</provider>
 
-            <!-- MINIMAL, SAFE SUREFIRE -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Tests.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
+        <includes>
+            <include>**/*Tests.java</include>
+        </includes>
+    </configuration>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-testng</artifactId>
+            <version>3.1.2</version>
+        </dependency>
+    </dependencies>
+</plugin>
 
         </plugins>
     </build>

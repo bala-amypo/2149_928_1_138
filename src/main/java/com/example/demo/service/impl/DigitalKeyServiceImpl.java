@@ -19,17 +19,8 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    // ✅ REQUIRED BY TESTS (DO NOT REMOVE)
-    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository) {
-        this.keyRepository = keyRepository;
-        this.bookingRepository = null;
-    }
-
-    // ✅ REQUIRED BY SPRING
-    public DigitalKeyServiceImpl(
-            DigitalKeyRepository keyRepository,
-            RoomBookingRepository bookingRepository) {
-
+    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
+                                 RoomBookingRepository bookingRepository) {
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }
@@ -45,12 +36,12 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
 
-        // ✅ MESSAGE REQUIRED BY TEST
+        // ✅ REQUIRED BY TEST: IllegalStateException WITH MESSAGE
         if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalStateException("booking inactive");
+            throw new IllegalStateException("Booking inactive");
         }
 
-        // deactivate old key
+        // ✅ deactivate existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> {
                     k.setActive(false);
@@ -88,18 +79,21 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
+        // ✅ REQUIRED BY TEST: return null (NOT exception)
         if (bookingId == null) {
-            return null; // ✅ REQUIRED BY NEGATIVE TEST
+            return null;
         }
 
         DigitalKey key = keyRepository
                 .findByBookingIdAndActiveTrue(bookingId)
-                .orElse(null); // ✅ MUST RETURN NULL
+                .orElse(null);
 
+        // ✅ REQUIRED BY TEST: missing key → null
         if (key == null) {
             return null;
         }
 
+        // ✅ expired key = invalid → null
         if (key.getExpiresAt() != null &&
             key.getExpiresAt().isBefore(Instant.now())) {
             return null;

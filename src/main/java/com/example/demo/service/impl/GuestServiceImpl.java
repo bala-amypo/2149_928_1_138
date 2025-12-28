@@ -36,21 +36,11 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        String rawPassword = guest.getPassword();
-        if (rawPassword == null) {
-            rawPassword = "";
-        }
-
+        String rawPassword = guest.getPassword() == null ? "" : guest.getPassword();
         guest.setPassword(passwordEncoder.encode(rawPassword));
 
-        if (guest.getActive() == null) {
-            guest.setActive(true);
-        }
-
-        if (guest.getVerified() == null) {
-            guest.setVerified(false);
-        }
-
+        if (guest.getActive() == null) guest.setActive(true);
+        if (guest.getVerified() == null) guest.setVerified(false);
         if (guest.getRole() == null || guest.getRole().isBlank()) {
             guest.setRole("ROLE_USER");
         }
@@ -80,22 +70,10 @@ public class GuestServiceImpl implements GuestService {
 
         Guest existing = getGuestById(id);
 
-        if (update.getFullName() != null) {
-            existing.setFullName(update.getFullName());
-        }
-
-        if (update.getPhoneNumber() != null) {
-            existing.setPhoneNumber(update.getPhoneNumber());
-        }
-
-        if (update.getVerified() != null) {
-            existing.setVerified(update.getVerified());
-        }
-
-        if (update.getActive() != null) {
-            existing.setActive(update.getActive());
-        }
-
+        if (update.getFullName() != null) existing.setFullName(update.getFullName());
+        if (update.getPhoneNumber() != null) existing.setPhoneNumber(update.getPhoneNumber());
+        if (update.getVerified() != null) existing.setVerified(update.getVerified());
+        if (update.getActive() != null) existing.setActive(update.getActive());
         if (update.getRole() != null && !update.getRole().isBlank()) {
             existing.setRole(update.getRole());
         }

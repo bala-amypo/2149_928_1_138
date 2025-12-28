@@ -15,9 +15,8 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public GuestServiceImpl(
-            GuestRepository guestRepository,
-            PasswordEncoder passwordEncoder) {
+    public GuestServiceImpl(GuestRepository guestRepository,
+                            PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -72,16 +71,12 @@ public class GuestServiceImpl implements GuestService {
 
         if (update.getFullName() != null)
             existing.setFullName(update.getFullName());
-
         if (update.getPhoneNumber() != null)
             existing.setPhoneNumber(update.getPhoneNumber());
-
         if (update.getVerified() != null)
             existing.setVerified(update.getVerified());
-
         if (update.getActive() != null)
             existing.setActive(update.getActive());
-
         if (update.getRole() != null)
             existing.setRole(update.getRole());
 
@@ -93,7 +88,6 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
-
         guest.setActive(false);
         guestRepository.save(guest);
     }

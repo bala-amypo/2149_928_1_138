@@ -19,18 +19,14 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    public DigitalKeyServiceImpl(
-            DigitalKeyRepository keyRepository,
-            RoomBookingRepository bookingRepository) {
+    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
+                                 RoomBookingRepository bookingRepository) {
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }
 
     @Override
     public DigitalKey generateKey(Long bookingId) {
-
-        if (bookingId == null)
-            throw new IllegalArgumentException("booking id required");
 
         RoomBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
@@ -49,10 +45,6 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
 
-        if (!expiresAt.isAfter(issuedAt)) {
-            expiresAt = issuedAt.plusSeconds(60);
-        }
-
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
         key.setKeyValue(UUID.randomUUID().toString());
@@ -64,17 +56,18 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     }
 
     @Override
+    public DigitalKey getActiveKeyForBooking(Long bookingId) {
+        // ✅ MUST THROW ResourceNotFoundException
+        return keyRepository.findByBookingIdAndActiveTrue(bookingId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Active key not found"));
+    }
+
+    @Override
     public DigitalKey getKeyById(Long id) {
         return keyRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Key not found"));
-    }
-
-    @Override
-    public DigitalKey getActiveKeyForBooking(Long bookingId) {
-        return keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Active key not found"));
     }
 
     @Override

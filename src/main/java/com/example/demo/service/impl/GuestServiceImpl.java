@@ -32,7 +32,7 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("Email must not be empty");
         }
 
-        // ✅ REQUIRED BY TESTS: duplicate email must throw IllegalArgumentException WITH message
+        // ✅ REQUIRED BY TESTS
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -63,6 +63,12 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
+
+        // ✅ IMPORTANT: null ID must also fail
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -78,7 +84,7 @@ public class GuestServiceImpl implements GuestService {
 
         Guest existing = getGuestById(id);
 
-        // ❌ EMAIL IS IMMUTABLE — DO NOT CHANGE
+        // ❌ EMAIL IS IMMUTABLE
 
         if (update.getFullName() != null) {
             existing.setFullName(update.getFullName());

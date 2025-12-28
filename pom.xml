@@ -46,8 +46,8 @@
         <!-- MySQL -->
         <dependency>
             <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- JWT -->
@@ -83,24 +83,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ✅ SPRING BOOT TEST (DO NOT REMOVE JUNIT JUPITER) -->
+        <!-- ✅ REQUIRED TEST DEPENDENCY -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- TestNG -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>7.8.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -109,27 +95,17 @@
     <build>
         <plugins>
 
-        <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-surefire-plugin</artifactId>
-    <version>3.1.2</version>
-    <configuration>
-        <!-- FORCE TESTNG -->
-        <provider>testng</provider>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
 
-        <includes>
-            <include>**/*Tests.java</include>
-        </includes>
-    </configuration>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.maven.surefire</groupId>
-            <artifactId>surefire-testng</artifactId>
-            <version>3.1.2</version>
-        </dependency>
-    </dependencies>
-</plugin>
+            <!-- DEFAULT SUREFIRE (JUnit Platform) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
 
         </plugins>
     </build>

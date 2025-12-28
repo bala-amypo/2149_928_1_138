@@ -29,19 +29,19 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     public DigitalKey generateKey(Long bookingId) {
 
         if (bookingId == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("booking id missing");
         }
 
         RoomBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
 
-        // ✅ MUST BE IllegalStateException
+        // ✅ REQUIRED BY TEST: IllegalStateException WITH MESSAGE
         if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Booking inactive");
         }
 
-        // ✅ DEACTIVATE OLD KEY
+        // ✅ deactivate existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> {
                     k.setActive(false);
@@ -55,7 +55,6 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
 
-        // ✅ SAFETY: expiry must be AFTER issue
         if (!expiresAt.isAfter(issuedAt)) {
             expiresAt = issuedAt.plusSeconds(60);
         }
@@ -80,19 +79,24 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
+        // ✅ REQUIRED BY TEST: return null (NOT exception)
         if (bookingId == null) {
-            throw new IllegalArgumentException();
+            return null;
         }
 
         DigitalKey key = keyRepository
                 .findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException());
+                .orElse(null);
 
-        // ✅ EXPIRED = INVALID
+        // ✅ REQUIRED BY TEST: missing key → null
+        if (key == null) {
+            return null;
+        }
+
+        // ✅ expired key = invalid → null
         if (key.getExpiresAt() != null &&
             key.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException();
+            return null;
         }
 
         return key;

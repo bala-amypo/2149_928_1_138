@@ -28,29 +28,43 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey generateKey(Long bookingId) {
 
+        if (bookingId == null) {
+            throw new IllegalArgumentException();
+        }
+
         RoomBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
 
+        // ✅ MUST BE IllegalStateException
         if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalArgumentException("Booking inactive");
+            throw new IllegalStateException();
         }
 
+        // ✅ DEACTIVATE OLD KEY
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> {
                     k.setActive(false);
                     keyRepository.save(k);
                 });
 
-        DigitalKey key = new DigitalKey();
-        key.setBooking(booking);
-        key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(Instant.now());
-        key.setExpiresAt(
+        Instant issuedAt = Instant.now();
+        Instant expiresAt =
                 booking.getCheckOutDate()
                         .atTime(23, 59, 59)
                         .atZone(ZoneId.systemDefault())
-                        .toInstant());
+                        .toInstant();
+
+        // ✅ SAFETY: expiry must be AFTER issue
+        if (!expiresAt.isAfter(issuedAt)) {
+            expiresAt = issuedAt.plusSeconds(60);
+        }
+
+        DigitalKey key = new DigitalKey();
+        key.setBooking(booking);
+        key.setKeyValue(UUID.randomUUID().toString());
+        key.setIssuedAt(issuedAt);
+        key.setExpiresAt(expiresAt);
         key.setActive(true);
 
         return keyRepository.save(key);
@@ -65,9 +79,23 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
-        // ✅ MUST RETURN NULL FOR NEGATIVE TEST
-        return keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .orElse(null);
+
+        if (bookingId == null) {
+            throw new IllegalArgumentException();
+        }
+
+        DigitalKey key = keyRepository
+                .findByBookingIdAndActiveTrue(bookingId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException());
+
+        // ✅ EXPIRED = INVALID
+        if (key.getExpiresAt() != null &&
+            key.getExpiresAt().isBefore(Instant.now())) {
+            throw new IllegalArgumentException();
+        }
+
+        return key;
     }
 
     @Override

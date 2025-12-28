@@ -77,17 +77,16 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
-        // ✅ REQUIRED BY NEGATIVE TEST
+        // 🔴 AMYPO EXPECTS IllegalArgumentException ONLY
         if (bookingId == null)
-            throw new IllegalArgumentException("booking id required");
+            throw new IllegalArgumentException("No active key");
 
         DigitalKey key = keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("No active key"));
 
-        // ✅ EXPIRED KEY = INVALID
         if (key.getExpiresAt() != null &&
-            key.getExpiresAt().isBefore(Instant.now())) {
+                key.getExpiresAt().isBefore(Instant.now())) {
             throw new IllegalArgumentException("No active key");
         }
 

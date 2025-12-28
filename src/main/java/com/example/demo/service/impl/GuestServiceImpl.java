@@ -26,23 +26,35 @@ public class GuestServiceImpl implements GuestService {
 
         if (guest == null ||
             guest.getEmail() == null ||
-            guest.getEmail().isBlank()) {
-            throw new IllegalArgumentException("Invalid guest");
+            guest.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException();
         }
 
-        // ✅ REQUIRED BY 2 NEGATIVE TESTS
+        // ✅ STRICT duplicate email handling
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            throw new IllegalArgumentException("Duplicate email");
+            throw new IllegalArgumentException();
         }
 
-        if (guest.getPassword() != null &&
-            !guest.getPassword().startsWith("$2a$")) {
-            guest.setPassword(passwordEncoder.encode(guest.getPassword()));
+        // ✅ PASSWORD MUST ALWAYS BE ENCODED
+        String rawPassword = guest.getPassword();
+        if (rawPassword == null) {
+            rawPassword = "";
+        }
+        if (!rawPassword.startsWith("$2a$")) {
+            guest.setPassword(passwordEncoder.encode(rawPassword));
         }
 
-        if (guest.getActive() == null) guest.setActive(true);
-        if (guest.getVerified() == null) guest.setVerified(false);
-        if (guest.getRole() == null) guest.setRole("ROLE_USER");
+        if (guest.getActive() == null) {
+            guest.setActive(true);
+        }
+
+        if (guest.getVerified() == null) {
+            guest.setVerified(false);
+        }
+
+        if (guest.getRole() == null || guest.getRole().isBlank()) {
+            guest.setRole("ROLE_USER");
+        }
 
         return guestRepository.save(guest);
     }
@@ -56,7 +68,7 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public List<Guest> getAllGuests() {
-        return guestRepository.findAll();
+        return guestRepository.findAll(); // NEVER null
     }
 
     @Override
@@ -64,20 +76,28 @@ public class GuestServiceImpl implements GuestService {
 
         Guest existing = getGuestById(id);
 
-        if (update.getFullName() != null)
+        // ❌ EMAIL IS IMMUTABLE (NORMALIZATION RULE)
+        // DO NOT UPDATE EMAIL
+
+        if (update.getFullName() != null) {
             existing.setFullName(update.getFullName());
+        }
 
-        if (update.getPhoneNumber() != null)
+        if (update.getPhoneNumber() != null) {
             existing.setPhoneNumber(update.getPhoneNumber());
+        }
 
-        if (update.getVerified() != null)
+        if (update.getVerified() != null) {
             existing.setVerified(update.getVerified());
+        }
 
-        if (update.getActive() != null)
+        if (update.getActive() != null) {
             existing.setActive(update.getActive());
+        }
 
-        if (update.getRole() != null)
+        if (update.getRole() != null && !update.getRole().isBlank()) {
             existing.setRole(update.getRole());
+        }
 
         return guestRepository.save(existing);
     }

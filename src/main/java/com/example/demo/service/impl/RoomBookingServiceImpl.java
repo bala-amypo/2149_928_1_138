@@ -23,7 +23,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     // ✅ REQUIRED BY TEST CASES (DO NOT REMOVE)
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
-        this.guestRepository = null;
+        this.guestRepository = null; // safe for tests
     }
 
     // ✅ REQUIRED BY SPRING RUNTIME
@@ -40,42 +40,40 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking createBooking(RoomBooking booking) {
 
         if (booking == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Booking cannot be null");
         }
 
         if (booking.getGuest() == null || booking.getGuest().getId() == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Guest is required");
         }
 
         LocalDate in = booking.getCheckInDate();
         LocalDate out = booking.getCheckOutDate();
 
         if (in == null || out == null || !in.isBefore(out)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Invalid booking dates");
         }
 
         if (booking.getRoomNumber() == null ||
             booking.getRoomNumber().trim().isEmpty()) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Room number is required");
         }
 
-        // ✅ REQUIRED BY DIGITAL KEY TESTS
         booking.setActive(true);
-
         return bookingRepository.save(booking);
     }
 
     @Override
     public RoomBooking getBookingById(Long id) {
         return bookingRepository.findById(id)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
     }
 
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        RoomBooking existing = bookingRepository.findById(id)
-                .orElseThrow(ResourceNotFoundException::new);
+        RoomBooking existing = getBookingById(id);
 
         LocalDate newIn = update.getCheckInDate() != null
                 ? update.getCheckInDate()
@@ -86,7 +84,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
                 : existing.getCheckOutDate();
 
         if (newIn == null || newOut == null || !newIn.isBefore(newOut)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Invalid booking dates");
         }
 
         if (update.getRoomNumber() != null &&

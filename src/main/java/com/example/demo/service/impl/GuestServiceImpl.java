@@ -32,7 +32,7 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("Email must not be empty");
         }
 
-        // 🔑 REQUIRED by 2 tests
+        // REQUIRED BY TESTS
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }

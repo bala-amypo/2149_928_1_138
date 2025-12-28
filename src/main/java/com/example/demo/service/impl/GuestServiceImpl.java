@@ -4,7 +4,6 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Guest;
 import com.example.demo.repository.GuestRepository;
 import com.example.demo.service.GuestService;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +45,7 @@ public class GuestServiceImpl implements GuestService {
 
         try {
             return guestRepository.save(guest);
-        } catch (DataIntegrityViolationException | RuntimeException ex) {
+        } catch (RuntimeException ex) {
             // ✅ REQUIRED BY UNIQUE CONSTRAINT TEST
             throw new IllegalArgumentException("email already exists");
         }

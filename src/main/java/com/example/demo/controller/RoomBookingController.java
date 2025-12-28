@@ -16,33 +16,27 @@ public class RoomBookingController {
         this.roomBookingService = roomBookingService;
     }
 
-    // ✅ Create booking
     @PostMapping(consumes = "application/json", produces = "application/json")
     public RoomBooking create(@RequestBody RoomBooking booking) {
         return roomBookingService.createBooking(booking);
     }
 
-    // ✅ Get booking by ID
     @GetMapping("/{id}")
     public RoomBooking getById(@PathVariable Long id) {
         return roomBookingService.getBookingById(id);
     }
 
-    // ✅ Get bookings for guest
     @GetMapping("/guest/{guestId}")
     public List<RoomBooking> getForGuest(@PathVariable Long guestId) {
         return roomBookingService.getBookingsForGuest(guestId);
     }
 
-    // ✅ Update booking
     @PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
-    public RoomBooking update(
-            @PathVariable Long id,
-            @RequestBody RoomBooking booking) {
+    public RoomBooking update(@PathVariable Long id,
+                              @RequestBody RoomBooking booking) {
         return roomBookingService.updateBooking(id, booking);
     }
 
-    // ✅ Deactivate booking
     @PutMapping("/{id}/deactivate")
     public RoomBooking deactivate(@PathVariable Long id) {
         roomBookingService.deactivateBooking(id);

@@ -15,6 +15,7 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // ✅ SINGLE CONSTRUCTOR — SPRING SAFE
     public GuestServiceImpl(GuestRepository guestRepository,
                             PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
@@ -24,25 +25,24 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest createGuest(Guest guest) {
 
-        if (guest == null ||
-            guest.getEmail() == null ||
-            guest.getEmail().trim().isEmpty()) {
-            throw new IllegalArgumentException();
+        if (guest == null) {
+            throw new IllegalArgumentException("Guest must not be null");
         }
 
-        // ✅ STRICT duplicate email handling
+        if (guest.getEmail() == null || guest.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email must not be empty");
+        }
+
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Email already exists");
         }
 
-        // ✅ PASSWORD MUST ALWAYS BE ENCODED
         String rawPassword = guest.getPassword();
         if (rawPassword == null) {
             rawPassword = "";
         }
-        if (!rawPassword.startsWith("$2a$")) {
-            guest.setPassword(passwordEncoder.encode(rawPassword));
-        }
+
+        guest.setPassword(passwordEncoder.encode(rawPassword));
 
         if (guest.getActive() == null) {
             guest.setActive(true);
@@ -61,6 +61,11 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
+
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -68,16 +73,13 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public List<Guest> getAllGuests() {
-        return guestRepository.findAll(); // NEVER null
+        return guestRepository.findAll();
     }
 
     @Override
     public Guest updateGuest(Long id, Guest update) {
 
         Guest existing = getGuestById(id);
-
-        // ❌ EMAIL IS IMMUTABLE (NORMALIZATION RULE)
-        // DO NOT UPDATE EMAIL
 
         if (update.getFullName() != null) {
             existing.setFullName(update.getFullName());

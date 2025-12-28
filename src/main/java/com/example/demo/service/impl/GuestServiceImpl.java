@@ -15,9 +15,8 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public GuestServiceImpl(
-            GuestRepository guestRepository,
-            PasswordEncoder passwordEncoder) {
+    public GuestServiceImpl(GuestRepository guestRepository,
+                            PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -31,7 +30,7 @@ public class GuestServiceImpl implements GuestService {
         if (guest.getEmail() == null || guest.getEmail().isBlank())
             throw new IllegalArgumentException("email required");
 
-        // ✅ REQUIRED BY TESTS
+        // ✅ REQUIRED BY 2 FAILING TESTS
         if (guestRepository.existsByEmail(guest.getEmail()))
             throw new IllegalArgumentException("email already exists");
 
@@ -61,7 +60,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest updateGuest(Long id, Guest update) {
-
         Guest existing = guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -86,11 +84,9 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public void deactivateGuest(Long id) {
-
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
-
         guest.setActive(false);
         guestRepository.save(guest);
     }

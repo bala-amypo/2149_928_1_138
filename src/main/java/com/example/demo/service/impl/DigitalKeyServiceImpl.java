@@ -19,9 +19,8 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    public DigitalKeyServiceImpl(
-            DigitalKeyRepository keyRepository,
-            RoomBookingRepository bookingRepository) {
+    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
+                                 RoomBookingRepository bookingRepository) {
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }

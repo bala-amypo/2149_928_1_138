@@ -38,18 +38,16 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> k.setActive(false));
 
-        Instant issuedAt = Instant.now();
-        Instant expiresAt =
-                booking.getCheckOutDate()
-                        .atTime(23, 59, 59)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant();
-
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
         key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(issuedAt);
-        key.setExpiresAt(expiresAt);
+        key.setIssuedAt(Instant.now());
+        key.setExpiresAt(
+                booking.getCheckOutDate()
+                        .atTime(23, 59, 59)
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()
+        );
         key.setActive(true);
 
         return keyRepository.save(key);
@@ -57,7 +55,7 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
-        // ✅ MUST THROW ResourceNotFoundException
+        // ✅ MUST throw ResourceNotFoundException
         return keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Active key not found"));

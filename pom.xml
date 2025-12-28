@@ -108,7 +108,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!--  MINIMAL, AUTO-DETECTING SUREFIRE -->
+            <!-- MINIMAL, AUTO-DETECTING SUREFIRE -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

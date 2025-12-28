@@ -24,18 +24,19 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest createGuest(Guest guest) {
 
-        if (guest == null)
-            throw new IllegalArgumentException();
+        if (guest == null ||
+            guest.getEmail() == null ||
+            guest.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Invalid guest");
+        }
 
-        if (guest.getEmail() == null || guest.getEmail().isBlank())
-            throw new IllegalArgumentException();
-
-        // ✅ REQUIRED BY BOTH NEGATIVE TESTS
-        if (guestRepository.existsByEmail(guest.getEmail()))
-            throw new IllegalArgumentException();
+        // ✅ REQUIRED BY 2 NEGATIVE TESTS
+        if (guestRepository.existsByEmail(guest.getEmail())) {
+            throw new IllegalArgumentException("Duplicate email");
+        }
 
         if (guest.getPassword() != null &&
-                !guest.getPassword().startsWith("$2a$")) {
+            !guest.getPassword().startsWith("$2a$")) {
             guest.setPassword(passwordEncoder.encode(guest.getPassword()));
         }
 
@@ -49,7 +50,8 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest getGuestById(Long id) {
         return guestRepository.findById(id)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
     }
 
     @Override

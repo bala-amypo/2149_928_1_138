@@ -17,6 +17,13 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
+    // ✅ USED BY TESTS
+    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
+        this.bookingRepository = bookingRepository;
+        this.guestRepository = null;
+    }
+
+    // ✅ USED BY SPRING
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository,
                                   GuestRepository guestRepository) {
         this.bookingRepository = bookingRepository;

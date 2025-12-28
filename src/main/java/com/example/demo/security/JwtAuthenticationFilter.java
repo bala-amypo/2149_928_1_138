@@ -14,17 +14,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component // ✅ REQUIRED
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
 
-    // ✅ Constructor REQUIRED by tests
     public JwtAuthenticationFilter(
             JwtTokenProvider jwtTokenProvider,
             UserDetailsService userDetailsService) {
-
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
@@ -45,23 +43,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = jwtTokenProvider.getEmailFromToken(token);
 
                 if (email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
+                        SecurityContextHolder.getContext().getAuthentication() == null) {
 
                     UserDetails userDetails =
                             userDetailsService.loadUserByUsername(email);
 
-                    UsernamePasswordAuthenticationToken auth =
+                    UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
                                     userDetails.getAuthorities());
 
-                    auth.setDetails(
+                    authentication.setDetails(
                             new WebAuthenticationDetailsSource()
                                     .buildDetails(request));
 
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(auth);
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(authentication);
                 }
             }
         }

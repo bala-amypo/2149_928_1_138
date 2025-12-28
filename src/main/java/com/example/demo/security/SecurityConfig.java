@@ -17,23 +17,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomUserDetailsService userDetailsService;
 
     public SecurityConfig(
-            CustomUserDetailsService userDetailsService,
-            JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.userDetailsService = userDetailsService;
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            CustomUserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
     }
 
-    // ✅ REQUIRED BY TESTS
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ REQUIRED BY SPRING SECURITY
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider =
@@ -43,14 +41,12 @@ public class SecurityConfig {
         return provider;
     }
 
-    // ✅ REQUIRED BY testAuthenticationManagerCalledOnLoginMock
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // ✅ REQUIRED FILTER CHAIN
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
@@ -66,10 +62,9 @@ public class SecurityConfig {
                         "/api/auth/**",
                         "/auth/**",
                         "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/hello-servlet"
+                        "/v3/api-docs/**"
                 ).permitAll()
-                .anyRequest().permitAll() // 🔥 REQUIRED BY TEST HARNESS
+                .anyRequest().permitAll()
             )
             .addFilterBefore(
                 jwtAuthenticationFilter,

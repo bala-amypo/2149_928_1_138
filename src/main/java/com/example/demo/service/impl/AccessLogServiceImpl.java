@@ -13,6 +13,7 @@ import com.example.demo.service.AccessLogService;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -23,11 +24,13 @@ public class AccessLogServiceImpl implements AccessLogService {
     private final GuestRepository guestRepo;
     private final KeyShareRequestRepository shareRepo;
 
+    // ✅ SINGLE PUBLIC CONSTRUCTOR (IMPORTANT)
     public AccessLogServiceImpl(
             AccessLogRepository repo,
             DigitalKeyRepository keyRepo,
             GuestRepository guestRepo,
             KeyShareRequestRepository shareRepo) {
+
         this.repo = repo;
         this.keyRepo = keyRepo;
         this.guestRepo = guestRepo;
@@ -37,59 +40,62 @@ public class AccessLogServiceImpl implements AccessLogService {
     @Override
     public AccessLog createLog(AccessLog log) {
 
-        if (log == null) {
-            throw new IllegalArgumentException("access log required");
-        }
-
-        if (log.getAccessTime() == null) {
-            throw new IllegalArgumentException("access time required");
+        if (log == null || log.getAccessTime() == null) {
+            throw new IllegalArgumentException();
         }
 
         Instant now = Instant.now();
 
         if (log.getAccessTime().isAfter(now)) {
-            throw new IllegalArgumentException("future access not allowed");
+            throw new IllegalArgumentException();
         }
 
         if (log.getDigitalKey() == null || log.getDigitalKey().getId() == null) {
-            throw new IllegalArgumentException("digital key required");
+            throw new IllegalArgumentException();
         }
 
         if (log.getGuest() == null || log.getGuest().getId() == null) {
-            throw new IllegalArgumentException("guest required");
+            throw new IllegalArgumentException();
         }
 
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Key not found"));
 
-        if (!Boolean.TRUE.equals(key.getActive())) {
-            return deny(log, key, "key inactive");
-        }
-
-        if (key.getExpiresAt() != null && key.getExpiresAt().isBefore(now)) {
-            return deny(log, key, "key expired");
-        }
-
         Guest guest = guestRepo.findById(log.getGuest().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Guest not found"));
 
-        if (!Boolean.TRUE.equals(guest.getActive())) {
-            return deny(log, key, guest, "guest inactive");
+        log.setDigitalKey(key);
+        log.setGuest(guest);
+
+        // ❌ INACTIVE KEY
+        if (!Boolean.TRUE.equals(key.getActive())) {
+            return deny(log, "key inactive");
         }
 
-        boolean isOwner = false;
-        if (key.getBooking() != null &&
-            key.getBooking().getGuest() != null &&
-            key.getBooking().getGuest().getId() != null) {
-            isOwner = key.getBooking().getGuest().getId().equals(guest.getId());
+        // ❌ EXPIRED KEY
+        if (key.getExpiresAt() != null && key.getExpiresAt().isBefore(now)) {
+            return deny(log, "key expired");
         }
+
+        // ❌ INACTIVE GUEST
+        if (!Boolean.TRUE.equals(guest.getActive())) {
+            return deny(log, "guest inactive");
+        }
+
+        boolean isOwner =
+                key.getBooking() != null &&
+                key.getBooking().getGuest() != null &&
+                key.getBooking().getGuest().getId() != null &&
+                key.getBooking().getGuest().getId().equals(guest.getId());
 
         boolean hasValidShare = false;
+
         if (!isOwner) {
             List<KeyShareRequest> shares =
                     shareRepo.findBySharedWithId(guest.getId());
 
             for (KeyShareRequest share : shares) {
+
                 if (share.getDigitalKey() == null ||
                     share.getDigitalKey().getId() == null ||
                     share.getShareStart() == null ||
@@ -97,21 +103,22 @@ public class AccessLogServiceImpl implements AccessLogService {
                     continue;
                 }
 
-                boolean sameKey = share.getDigitalKey().getId().equals(key.getId());
-                boolean approved = "APPROVED".equals(share.getStatus());
-                boolean within =
+                boolean sameKey =
+                        share.getDigitalKey().getId().equals(key.getId());
+
+                boolean approved =
+                        "APPROVED".equals(share.getStatus());
+
+                boolean withinWindow =
                         !log.getAccessTime().isBefore(share.getShareStart()) &&
                         !log.getAccessTime().isAfter(share.getShareEnd());
 
-                if (sameKey && approved && within) {
+                if (sameKey && approved && withinWindow) {
                     hasValidShare = true;
                     break;
                 }
             }
         }
-
-        log.setDigitalKey(key);
-        log.setGuest(guest);
 
         if (isOwner || hasValidShare) {
             log.setResult("SUCCESS");
@@ -124,16 +131,7 @@ public class AccessLogServiceImpl implements AccessLogService {
         return repo.save(log);
     }
 
-    private AccessLog deny(AccessLog log, DigitalKey key, String reason) {
-        log.setDigitalKey(key);
-        log.setResult("DENIED");
-        log.setReason(reason);
-        return repo.save(log);
-    }
-
-    private AccessLog deny(AccessLog log, DigitalKey key, Guest guest, String reason) {
-        log.setDigitalKey(key);
-        log.setGuest(guest);
+    private AccessLog deny(AccessLog log, String reason) {
         log.setResult("DENIED");
         log.setReason(reason);
         return repo.save(log);
@@ -141,11 +139,17 @@ public class AccessLogServiceImpl implements AccessLogService {
 
     @Override
     public List<AccessLog> getLogsForKey(Long keyId) {
+        if (keyId == null) {
+            return Collections.emptyList();
+        }
         return repo.findByDigitalKeyId(keyId);
     }
 
     @Override
     public List<AccessLog> getLogsForGuest(Long guestId) {
+        if (guestId == null) {
+            return Collections.emptyList();
+        }
         return repo.findByGuestId(guestId);
     }
 }

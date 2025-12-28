@@ -19,9 +19,8 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    public DigitalKeyServiceImpl(
-            DigitalKeyRepository keyRepository,
-            RoomBookingRepository bookingRepository) {
+    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
+                                 RoomBookingRepository bookingRepository) {
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }
@@ -39,7 +38,6 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
         if (!Boolean.TRUE.equals(booking.getActive()))
             throw new IllegalStateException("booking inactive");
 
-        // deactivate existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> {
                     k.setActive(false);
@@ -53,9 +51,8 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
 
-        if (!expiresAt.isAfter(issuedAt)) {
+        if (!expiresAt.isAfter(issuedAt))
             expiresAt = issuedAt.plusSeconds(60);
-        }
 
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
@@ -77,7 +74,6 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
-        // 🔴 AMYPO EXPECTS IllegalArgumentException ONLY
         if (bookingId == null)
             throw new IllegalArgumentException("No active key");
 

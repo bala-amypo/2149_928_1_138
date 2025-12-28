@@ -19,15 +19,15 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
+    // Required for tests
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = null;
     }
 
     @Autowired
-    public RoomBookingServiceImpl(
-            RoomBookingRepository bookingRepository,
-            GuestRepository guestRepository) {
+    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository,
+                                  GuestRepository guestRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = guestRepository;
     }
@@ -41,14 +41,12 @@ public class RoomBookingServiceImpl implements RoomBookingService {
         if (booking.getCheckInDate() != null &&
             booking.getCheckOutDate() != null &&
             !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("Invalid booking dates");
+            throw new IllegalArgumentException("invalid booking dates");
         }
 
         if (guestRepository != null) {
-            if (booking.getGuest() == null ||
-                booking.getGuest().getId() == null) {
-                throw new IllegalArgumentException("Guest required");
-            }
+            if (booking.getGuest() == null || booking.getGuest().getId() == null)
+                throw new IllegalArgumentException("guest required");
 
             Guest guest = guestRepository.findById(booking.getGuest().getId())
                     .orElseThrow(() ->

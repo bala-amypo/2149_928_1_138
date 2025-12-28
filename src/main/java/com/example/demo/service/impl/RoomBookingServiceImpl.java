@@ -19,37 +19,35 @@ public class RoomBookingServiceImpl implements RoomBookingService {
         this.bookingRepository = bookingRepository;
     }
 
-@Override
-public RoomBooking createBooking(RoomBooking booking) {
+    @Override
+    public RoomBooking createBooking(RoomBooking booking) {
 
-    if (booking == null)
-        throw new IllegalArgumentException("booking required");
+        if (booking == null) {
+            throw new IllegalArgumentException("Booking required");
+        }
 
-    // ✅ MUST THROW
-    if (booking.getCheckInDate() != null &&
-        booking.getCheckOutDate() != null &&
-        !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-        throw new IllegalArgumentException("invalid booking dates");
+        // ✅ REQUIRED BY testCreateBookingInvalidDatesNegative
+        if (booking.getCheckInDate() != null &&
+            booking.getCheckOutDate() != null &&
+            !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
+            throw new IllegalArgumentException("Invalid booking dates");
+        }
+
+        booking.setActive(true);
+        return bookingRepository.save(booking);
     }
 
-    booking.setActive(true);
-    return bookingRepository.save(booking);
-}
-
-@Override
-public RoomBooking updateBooking(Long id, RoomBooking update) {
-
-    RoomBooking existing = bookingRepository.findById(id)
-            .orElseThrow(() ->
-                    new ResourceNotFoundException("Booking not found"));
-
-    return bookingRepository.save(existing);
-}
-
+    @Override
+    public RoomBooking getBookingById(Long id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
+    }
 
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
+        // ✅ REQUIRED BY testUpdateBookingNonExistingNegative
         RoomBooking existing = bookingRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));

@@ -20,17 +20,18 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // REQUIRED BY TESTS
+    // ✅ REQUIRED BY TESTS — DO NOT REMOVE
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
-        this.guestRepository = null;
+        this.guestRepository = null; // tests do not need this
     }
 
-    // REQUIRED BY SPRING
+    // ✅ REQUIRED BY SPRING RUNTIME
     @Autowired
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
             GuestRepository guestRepository) {
+
         this.bookingRepository = bookingRepository;
         this.guestRepository = guestRepository;
     }
@@ -39,22 +40,23 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     public RoomBooking createBooking(RoomBooking booking) {
 
         if (booking == null) {
-            throw new IllegalArgumentException("booking is null");
+            throw new IllegalArgumentException();
         }
 
         if (booking.getGuest() == null || booking.getGuest().getId() == null) {
-            throw new IllegalArgumentException("guest missing");
+            throw new IllegalArgumentException();
         }
 
         LocalDate in = booking.getCheckInDate();
         LocalDate out = booking.getCheckOutDate();
 
         if (in == null || out == null || !in.isBefore(out)) {
-            throw new IllegalArgumentException("invalid booking dates");
+            throw new IllegalArgumentException();
         }
 
-        if (booking.getRoomNumber() == null || booking.getRoomNumber().trim().isEmpty()) {
-            throw new IllegalArgumentException("room number missing");
+        if (booking.getRoomNumber() == null ||
+                booking.getRoomNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException();
         }
 
         booking.setActive(true);
@@ -71,28 +73,31 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        RoomBooking existing = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
+        RoomBooking existing = getBookingById(id);
 
-        LocalDate in = update.getCheckInDate() != null
+        LocalDate newIn = update.getCheckInDate() != null
                 ? update.getCheckInDate()
                 : existing.getCheckInDate();
 
-        LocalDate out = update.getCheckOutDate() != null
+        LocalDate newOut = update.getCheckOutDate() != null
                 ? update.getCheckOutDate()
                 : existing.getCheckOutDate();
 
-        if (!in.isBefore(out)) {
-            throw new IllegalArgumentException("invalid booking dates");
+        if (newIn == null || newOut == null || !newIn.isBefore(newOut)) {
+            throw new IllegalArgumentException();
         }
 
-        if (update.getRoomNumber() != null && !update.getRoomNumber().isBlank()) {
+        if (update.getRoomNumber() != null &&
+                !update.getRoomNumber().trim().isEmpty()) {
             existing.setRoomNumber(update.getRoomNumber());
         }
 
-        existing.setCheckInDate(in);
-        existing.setCheckOutDate(out);
+        existing.setCheckInDate(newIn);
+        existing.setCheckOutDate(newOut);
+
+        if (update.getActive() != null) {
+            existing.setActive(update.getActive());
+        }
 
         return bookingRepository.save(existing);
     }
@@ -106,9 +111,14 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public List<RoomBooking> getBookingsForGuest(Long guestId) {
+
         if (guestId == null) {
             return Collections.emptyList();
         }
-        return bookingRepository.findByGuestId(guestId);
+
+        List<RoomBooking> bookings =
+                bookingRepository.findByGuestId(guestId);
+
+        return bookings != null ? bookings : Collections.emptyList();
     }
 }

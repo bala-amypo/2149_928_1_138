@@ -52,10 +52,6 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
 
-        if (!expiresAt.isAfter(issuedAt)) {
-            expiresAt = issuedAt.plusSeconds(60);
-        }
-
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
         key.setKeyValue(UUID.randomUUID().toString());

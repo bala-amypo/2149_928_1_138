@@ -40,9 +40,9 @@ public class GuestServiceImpl implements GuestService {
             guest.setPassword(passwordEncoder.encode(guest.getPassword()));
         }
 
-        guest.setActive(true);
-        guest.setVerified(false);
-        guest.setRole("ROLE_USER");
+        if (guest.getActive() == null) guest.setActive(true);
+        if (guest.getVerified() == null) guest.setVerified(false);
+        if (guest.getRole() == null) guest.setRole("ROLE_USER");
 
         return guestRepository.save(guest);
     }
@@ -86,6 +86,7 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public void deactivateGuest(Long id) {
+
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));

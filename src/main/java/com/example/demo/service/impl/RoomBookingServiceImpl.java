@@ -25,10 +25,11 @@ public class RoomBookingServiceImpl implements RoomBookingService {
         if (booking == null)
             throw new IllegalArgumentException("booking required");
 
+        // ✅ STRICT DATE CHECK
         if (booking.getCheckInDate() != null &&
             booking.getCheckOutDate() != null &&
             !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("invalid booking dates");
+            throw new IllegalArgumentException("invalid dates");
         }
 
         booking.setActive(true);

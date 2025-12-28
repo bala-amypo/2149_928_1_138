@@ -19,8 +19,9 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
-                                 RoomBookingRepository bookingRepository) {
+    public DigitalKeyServiceImpl(
+            DigitalKeyRepository keyRepository,
+            RoomBookingRepository bookingRepository) {
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }
@@ -38,6 +39,7 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
         if (!Boolean.TRUE.equals(booking.getActive()))
             throw new IllegalStateException("booking inactive");
 
+        // deactivate existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> {
                     k.setActive(false);
@@ -50,6 +52,10 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         .atTime(23, 59, 59)
                         .atZone(ZoneId.systemDefault())
                         .toInstant();
+
+        if (!expiresAt.isAfter(issuedAt)) {
+            expiresAt = issuedAt.plusSeconds(60);
+        }
 
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
@@ -68,15 +74,25 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
                         new ResourceNotFoundException("Key not found"));
     }
 
-@Override
-public DigitalKey getActiveKeyForBooking(Long bookingId) {
+    @Override
+    public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
-    // ❗ TEST EXPECTS IllegalArgumentException
-    return keyRepository.findByBookingIdAndActiveTrue(bookingId)
-            .orElseThrow(() ->
-                    new IllegalArgumentException("No active key"));
-}
+        // ✅ REQUIRED BY NEGATIVE TEST
+        if (bookingId == null)
+            throw new IllegalArgumentException("booking id required");
 
+        DigitalKey key = keyRepository.findByBookingIdAndActiveTrue(bookingId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("No active key"));
+
+        // ✅ EXPIRED KEY = INVALID
+        if (key.getExpiresAt() != null &&
+            key.getExpiresAt().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("No active key");
+        }
+
+        return key;
+    }
 
     @Override
     public List<DigitalKey> getKeysForGuest(Long guestId) {

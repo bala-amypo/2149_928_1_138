@@ -1,8 +1,8 @@
 package com.example.demo.config;
 
+import com.example.demo.security.CustomUserDetailsService;
 import com.example.demo.security.JwtAuthenticationFilter;
 import com.example.demo.security.JwtTokenProvider;
-import com.example.demo.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,17 +20,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenProvider jwtTokenProvider;
 
-public SecurityConfig(
-        JwtTokenProvider jwtTokenProvider,
-        CustomUserDetailsService userDetailsService,
-        JwtAuthenticationFilter jwtAuthenticationFilter) {
-
-    this.jwtTokenProvider = jwtTokenProvider;
-    this.userDetailsService = userDetailsService;
-    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-}
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            JwtTokenProvider jwtTokenProvider
+    ) {
+        this.userDetailsService = userDetailsService;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     // ✅ REQUIRED BY TESTS
     @Bean
@@ -55,7 +53,16 @@ public SecurityConfig(
         return configuration.getAuthenticationManager();
     }
 
-    // ✅ REQUIRED SECURITY FILTER CHAIN
+    // ✅ REGISTER FILTER AS BEAN
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        JwtAuthenticationFilter filter =
+                new JwtAuthenticationFilter(jwtTokenProvider);
+        filter.setUserDetailsService(userDetailsService);
+        return filter;
+    }
+
+    // ✅ SECURITY FILTER CHAIN
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -73,12 +80,13 @@ public SecurityConfig(
                         "/v3/api-docs/**",
                         "/hello-servlet"
                 ).permitAll()
-                .anyRequest().permitAll() // REQUIRED BY TEST HARNESS
+                .anyRequest().permitAll()
             )
             .addFilterBefore(
-    jwtAuthenticationFilter,
-    UsernamePasswordAuthenticationFilter.class
-)
+                jwtAuthenticationFilter(),
+                UsernamePasswordAuthenticationFilter.class
+            );
+
         return http.build();
     }
 }

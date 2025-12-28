@@ -83,7 +83,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ✅ REQUIRED: Spring Boot Test (WITHOUT JUNIT) -->
+        <!-- ✅ SPRING BOOT TEST (DO NOT REMOVE JUNIT JUPITER) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -92,10 +92,6 @@
                 <exclusion>
                     <groupId>org.junit.vintage</groupId>
                     <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -118,24 +114,16 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- TestNG ONLY -->
+            <!-- MINIMAL, SAFE SUREFIRE -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
-                    <useJUnitPlatform>false</useJUnitPlatform>
                     <includes>
                         <include>**/*Tests.java</include>
                     </includes>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-testng</artifactId>
-                        <version>3.1.2</version>
-                    </dependency>
-                </dependencies>
             </plugin>
 
         </plugins>

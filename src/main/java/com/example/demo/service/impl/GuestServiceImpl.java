@@ -15,7 +15,6 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ SINGLE CONSTRUCTOR — SPRING SAFE
     public GuestServiceImpl(GuestRepository guestRepository,
                             PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
@@ -59,17 +58,17 @@ public class GuestServiceImpl implements GuestService {
         return guestRepository.save(guest);
     }
 
-@Override
-public Guest getGuestById(Long id) {
+    @Override
+    public Guest getGuestById(Long id) {
 
-    if (id == null) {
-        throw new ResourceNotFoundException();
+        if (id == null) {
+            throw new ResourceNotFoundException("Guest not found");
+        }
+
+        return guestRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Guest not found"));
     }
-
-    return guestRepository.findById(id)
-            .orElseThrow(ResourceNotFoundException::new);
-}
-
 
     @Override
     public List<Guest> getAllGuests() {

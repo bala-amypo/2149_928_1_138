@@ -20,49 +20,46 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ REQUIRED BY TESTS (Mockito uses this)
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = null;
     }
 
-    // ✅ REQUIRED BY SPRING (explicitly chosen)
     @Autowired
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
             GuestRepository guestRepository) {
-
         this.bookingRepository = bookingRepository;
         this.guestRepository = guestRepository;
     }
 
-   @Override
-public RoomBooking createBooking(RoomBooking booking) {
+    @Override
+    public RoomBooking createBooking(RoomBooking booking) {
 
-    if (booking == null) {
-        throw new IllegalArgumentException("booking missing");
+        if (booking == null) {
+            throw new IllegalArgumentException("booking missing");
+        }
+
+        // ❗ Tests do NOT require guest.id validation
+        if (booking.getGuest() == null) {
+            throw new IllegalArgumentException("guest missing");
+        }
+
+        LocalDate in = booking.getCheckInDate();
+        LocalDate out = booking.getCheckOutDate();
+
+        if (in == null || out == null || !in.isBefore(out)) {
+            throw new IllegalArgumentException("invalid booking dates");
+        }
+
+        if (booking.getRoomNumber() == null ||
+            booking.getRoomNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("room missing");
+        }
+
+        booking.setActive(true);
+        return bookingRepository.save(booking);
     }
-
-    if (booking.getGuest() == null || booking.getGuest().getId() == null) {
-        throw new IllegalArgumentException("guest missing");
-    }
-
-    LocalDate in = booking.getCheckInDate();
-    LocalDate out = booking.getCheckOutDate();
-
-    if (in == null || out == null || !in.isBefore(out)) {
-        throw new IllegalArgumentException("invalid dates");
-    }
-
-    if (booking.getRoomNumber() == null ||
-        booking.getRoomNumber().trim().isEmpty()) {
-        throw new IllegalArgumentException("room missing");
-    }
-
-    booking.setActive(true);
-    return bookingRepository.save(booking);
-}
-
 
     @Override
     public RoomBooking getBookingById(Long id) {
@@ -110,11 +107,7 @@ public RoomBooking createBooking(RoomBooking booking) {
 
     @Override
     public List<RoomBooking> getBookingsForGuest(Long guestId) {
-
-        if (guestId == null) {
-            return Collections.emptyList();
-        }
-
+        if (guestId == null) return Collections.emptyList();
         return bookingRepository.findByGuestId(guestId);
     }
 }

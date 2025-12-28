@@ -29,19 +29,19 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     public DigitalKey generateKey(Long bookingId) {
 
         if (bookingId == null) {
-            throw new IllegalArgumentException("booking id missing");
+            throw new IllegalArgumentException("Booking ID missing");
         }
 
         RoomBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
 
-        // ✅ REQUIRED BY TEST: IllegalStateException WITH MESSAGE
+        // ✅ REQUIRED: IllegalStateException WITH MESSAGE
         if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalStateException("Booking inactive");
+            throw new IllegalStateException("Booking is inactive");
         }
 
-        // ✅ deactivate existing active key
+        // deactivate existing active key
         keyRepository.findByBookingIdAndActiveTrue(bookingId)
                 .ifPresent(k -> {
                     k.setActive(false);
@@ -79,24 +79,19 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
 
-        // ✅ REQUIRED BY TEST: return null (NOT exception)
         if (bookingId == null) {
-            return null;
+            throw new IllegalArgumentException("Booking ID missing");
         }
 
         DigitalKey key = keyRepository
                 .findByBookingIdAndActiveTrue(bookingId)
-                .orElse(null);
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Active key not found"));
 
-        // ✅ REQUIRED BY TEST: missing key → null
-        if (key == null) {
-            return null;
-        }
-
-        // ✅ expired key = invalid → null
+        // expired key = invalid
         if (key.getExpiresAt() != null &&
             key.getExpiresAt().isBefore(Instant.now())) {
-            return null;
+            throw new IllegalArgumentException("Key expired");
         }
 
         return key;

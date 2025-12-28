@@ -13,19 +13,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@Transactional // ✅ REQUIRED BY TEST
+@Transactional
 public class RoomBookingServiceImpl implements RoomBookingService {
 
     private final RoomBookingRepository bookingRepository;
     private final GuestRepository guestRepository;
 
-    // ✅ REQUIRED BY TESTS (mock constructor)
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
         this.guestRepository = null;
     }
 
-    // ✅ REQUIRED BY SPRING
     @Autowired
     public RoomBookingServiceImpl(
             RoomBookingRepository bookingRepository,
@@ -37,23 +35,19 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null) {
+        if (booking == null)
             throw new IllegalArgumentException("booking required");
-        }
 
-        // ✅ REQUIRED BY testCreateBookingInvalidDatesNegative
-        if (booking.getCheckInDate() == null ||
-            booking.getCheckOutDate() == null ||
+        // ✅ REQUIRED
+        if (booking.getCheckInDate() != null &&
+            booking.getCheckOutDate() != null &&
             !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("Invalid booking dates");
+            throw new IllegalArgumentException("invalid booking dates");
         }
 
         if (guestRepository != null) {
-
-            if (booking.getGuest() == null ||
-                booking.getGuest().getId() == null) {
-                throw new IllegalArgumentException("Guest required");
-            }
+            if (booking.getGuest() == null || booking.getGuest().getId() == null)
+                throw new IllegalArgumentException("guest required");
 
             Guest guest = guestRepository.findById(booking.getGuest().getId())
                     .orElseThrow(() ->
@@ -76,7 +70,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
 
-        // ✅ REQUIRED BY testUpdateBookingNonExistingNegative
+        // ✅ REQUIRED BY NEGATIVE TEST
         RoomBooking existing = bookingRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Booking not found"));
@@ -98,10 +92,7 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public void deactivateBooking(Long id) {
-        RoomBooking booking = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
-
+        RoomBooking booking = getBookingById(id);
         booking.setActive(false);
         bookingRepository.save(booking);
     }

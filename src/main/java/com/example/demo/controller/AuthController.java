@@ -30,7 +30,7 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // ✅ REGISTER (TEST-SAFE)
+    
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest request) {
 
@@ -40,14 +40,14 @@ public class AuthController {
         g.setEmail(request.getEmail());
         g.setPhoneNumber(request.getPhoneNumber());
 
-        // ✅ Password null-safe
+        
         if (request.getPassword() != null) {
             g.setPassword(passwordEncoder.encode(request.getPassword()));
         } else {
             g.setPassword(passwordEncoder.encode(""));
         }
 
-        // ✅ Role null / blank safe (DEFAULT = ROLE_USER)
+        
         String role = request.getRole();
         if (role == null || role.trim().isEmpty()) {
             role = "ROLE_USER";
@@ -56,17 +56,17 @@ public class AuthController {
         }
         g.setRole(role);
 
-        // ✅ Required by tests
+        
         g.setVerified(true);
         g.setActive(true);
 
         guestService.createGuest(g);
 
-        // ⚠️ EXACT STRING EXPECTED BY TESTS
+        
         return "Registered Successfully";
     }
 
-    // ✅ LOGIN (DO NOT TOUCH)
+    
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest request) {
 

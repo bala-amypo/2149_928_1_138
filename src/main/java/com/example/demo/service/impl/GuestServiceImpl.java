@@ -15,6 +15,7 @@ public class GuestServiceImpl implements GuestService {
     private final GuestRepository guestRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // ✅ SINGLE constructor – Spring safe
     public GuestServiceImpl(GuestRepository guestRepository,
                             PasswordEncoder passwordEncoder) {
         this.guestRepository = guestRepository;
@@ -24,6 +25,7 @@ public class GuestServiceImpl implements GuestService {
     @Override
     public Guest createGuest(Guest guest) {
 
+        // ✅ REQUIRED BY TESTS
         if (guest == null) {
             throw new IllegalArgumentException("guest");
         }
@@ -32,6 +34,7 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("email");
         }
 
+        // ✅ duplicate email → IllegalArgumentException("email")
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("email");
         }
@@ -39,8 +42,14 @@ public class GuestServiceImpl implements GuestService {
         String rawPassword = guest.getPassword() == null ? "" : guest.getPassword();
         guest.setPassword(passwordEncoder.encode(rawPassword));
 
-        if (guest.getActive() == null) guest.setActive(true);
-        if (guest.getVerified() == null) guest.setVerified(false);
+        if (guest.getActive() == null) {
+            guest.setActive(true);
+        }
+
+        if (guest.getVerified() == null) {
+            guest.setVerified(false);
+        }
+
         if (guest.getRole() == null || guest.getRole().isBlank()) {
             guest.setRole("ROLE_USER");
         }
@@ -50,6 +59,8 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
+
+        // ❗ DO NOT check null separately – tests expect repository lookup
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -67,10 +78,22 @@ public class GuestServiceImpl implements GuestService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
 
-        if (update.getFullName() != null) existing.setFullName(update.getFullName());
-        if (update.getPhoneNumber() != null) existing.setPhoneNumber(update.getPhoneNumber());
-        if (update.getVerified() != null) existing.setVerified(update.getVerified());
-        if (update.getActive() != null) existing.setActive(update.getActive());
+        if (update.getFullName() != null) {
+            existing.setFullName(update.getFullName());
+        }
+
+        if (update.getPhoneNumber() != null) {
+            existing.setPhoneNumber(update.getPhoneNumber());
+        }
+
+        if (update.getVerified() != null) {
+            existing.setVerified(update.getVerified());
+        }
+
+        if (update.getActive() != null) {
+            existing.setActive(update.getActive());
+        }
+
         if (update.getRole() != null && !update.getRole().isBlank()) {
             existing.setRole(update.getRole());
         }
@@ -80,6 +103,7 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public void deactivateGuest(Long id) {
+
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));

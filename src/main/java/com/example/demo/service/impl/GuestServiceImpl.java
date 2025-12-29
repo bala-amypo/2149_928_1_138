@@ -25,16 +25,15 @@ public class GuestServiceImpl implements GuestService {
     public Guest createGuest(Guest guest) {
 
         if (guest == null) {
-            throw new IllegalArgumentException("Guest must not be null");
+            throw new IllegalArgumentException("guest");
         }
 
         if (guest.getEmail() == null || guest.getEmail().trim().isEmpty()) {
-            throw new IllegalArgumentException("Email must not be empty");
+            throw new IllegalArgumentException("email");
         }
 
-        // REQUIRED BY TESTS
         if (guestRepository.existsByEmail(guest.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("email");
         }
 
         String rawPassword = guest.getPassword() == null ? "" : guest.getPassword();
@@ -51,11 +50,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
-
-        if (id == null) {
-            throw new ResourceNotFoundException("Guest not found");
-        }
-
         return guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));
@@ -68,10 +62,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest updateGuest(Long id, Guest update) {
-
-        if (id == null) {
-            throw new ResourceNotFoundException("Guest not found");
-        }
 
         Guest existing = guestRepository.findById(id)
                 .orElseThrow(() ->
@@ -90,11 +80,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public void deactivateGuest(Long id) {
-
-        if (id == null) {
-            throw new ResourceNotFoundException("Guest not found");
-        }
-
         Guest guest = guestRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Guest not found"));

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collections;   // ✅ FIXED IMPORT
 import java.util.List;
 import java.util.UUID;
 
@@ -19,8 +20,10 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     private final DigitalKeyRepository keyRepository;
     private final RoomBookingRepository bookingRepository;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
-                                 RoomBookingRepository bookingRepository) {
+    public DigitalKeyServiceImpl(
+            DigitalKeyRepository keyRepository,
+            RoomBookingRepository bookingRepository) {
+
         this.keyRepository = keyRepository;
         this.bookingRepository = bookingRepository;
     }
@@ -28,19 +31,28 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey generateKey(Long bookingId) {
 
-        if (bookingId == null) throw new IllegalArgumentException("booking");
+        if (bookingId == null) {
+            throw new IllegalArgumentException("booking");
+        }
 
-        RoomBooking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null) throw new IllegalArgumentException("booking");
+        RoomBooking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Booking not found"));
 
-        if (!Boolean.TRUE.equals(booking.getActive()))
+        if (!Boolean.TRUE.equals(booking.getActive())) {
             throw new IllegalStateException("inactive");
+        }
 
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
         key.setKeyValue(UUID.randomUUID().toString());
         key.setIssuedAt(Instant.now());
-        key.setExpiresAt(Instant.now().plusSeconds(3600));
+        key.setExpiresAt(
+                booking.getCheckOutDate()
+                        .atTime(23, 59, 59)
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()
+        );
         key.setActive(true);
 
         return keyRepository.save(key);
@@ -48,19 +60,31 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     @Override
     public DigitalKey getKeyById(Long id) {
-        if (id == null) return null;
-        return keyRepository.findById(id).orElse(null);
+        if (id == null) {
+            throw new ResourceNotFoundException("Key not found");
+        }
+        return keyRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Key not found"));
     }
 
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
-        if (bookingId == null) return null;
-        return keyRepository.findByBookingIdAndActiveTrue(bookingId).orElse(null);
+
+        if (bookingId == null) {
+            throw new ResourceNotFoundException("Booking not found");
+        }
+
+        return keyRepository.findByBookingIdAndActiveTrue(bookingId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Key not found"));
     }
 
     @Override
     public List<DigitalKey> getKeysForGuest(Long guestId) {
-        if (guestId == null) return Collections.emptyList();
+        if (guestId == null) {
+            return Collections.emptyList(); // ✅ now works
+        }
         return keyRepository.findByBookingGuestId(guestId);
     }
 }

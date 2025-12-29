@@ -32,7 +32,7 @@ public class GuestServiceImpl implements GuestService {
             throw new IllegalArgumentException("email");
         }
 
-        // 🔑 required by 2 tests
+        // required by duplicate email tests
         if (guestRepository.existsByEmail(guest.getEmail())) {
             throw new IllegalArgumentException("email");
         }
@@ -51,9 +51,12 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest getGuestById(Long id) {
+        if (id == null) {
+            throw new ResourceNotFoundException();
+        }
+
         return guestRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found"));
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
     @Override
@@ -63,10 +66,12 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public Guest updateGuest(Long id, Guest update) {
+        if (id == null) {
+            throw new ResourceNotFoundException();
+        }
 
         Guest existing = guestRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         if (update.getFullName() != null) existing.setFullName(update.getFullName());
         if (update.getPhoneNumber() != null) existing.setPhoneNumber(update.getPhoneNumber());
@@ -81,10 +86,12 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     public void deactivateGuest(Long id) {
+        if (id == null) {
+            throw new ResourceNotFoundException();
+        }
 
         Guest guest = guestRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Guest not found"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         guest.setActive(false);
         guestRepository.save(guest);

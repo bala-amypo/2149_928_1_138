@@ -17,32 +17,19 @@ import java.util.List;
 public class RoomBookingServiceImpl implements RoomBookingService {
 
     private final RoomBookingRepository bookingRepository;
-    private final GuestRepository guestRepository;
 
-    // required for tests
     public RoomBookingServiceImpl(RoomBookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
-        this.guestRepository = null;
-    }
-
-    @Autowired
-    public RoomBookingServiceImpl(RoomBookingRepository bookingRepository,
-                                  GuestRepository guestRepository) {
-        this.bookingRepository = bookingRepository;
-        this.guestRepository = guestRepository;
     }
 
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null) {
-            throw new IllegalArgumentException("booking");
-        }
+        if (booking == null) throw new IllegalArgumentException("booking");
 
-        LocalDate in = booking.getCheckInDate();
-        LocalDate out = booking.getCheckOutDate();
-
-        if (in == null || out == null || !in.isBefore(out)) {
+        if (booking.getCheckInDate() == null ||
+            booking.getCheckOutDate() == null ||
+            !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
             throw new IllegalArgumentException("date");
         }
 
@@ -52,47 +39,24 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public RoomBooking getBookingById(Long id) {
+        if (id == null) return null;
         return bookingRepository.findById(id).orElse(null);
     }
 
-    // 🔑 MUST RETURN NULL IF NOT FOUND
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
+        RoomBooking b = bookingRepository.findById(id).orElse(null);
+        if (b == null) return null;
 
-        RoomBooking existing = bookingRepository.findById(id).orElse(null);
-        if (existing == null) {
-            return null;
-        }
-
-        LocalDate in = update.getCheckInDate() != null
-                ? update.getCheckInDate()
-                : existing.getCheckInDate();
-
-        LocalDate out = update.getCheckOutDate() != null
-                ? update.getCheckOutDate()
-                : existing.getCheckOutDate();
-
-        if (!in.isBefore(out)) {
-            throw new IllegalArgumentException("date");
-        }
-
-        existing.setCheckInDate(in);
-        existing.setCheckOutDate(out);
-
-        if (update.getRoomNumber() != null) {
-            existing.setRoomNumber(update.getRoomNumber());
-        }
-
-        return bookingRepository.save(existing);
+        return bookingRepository.save(b);
     }
 
     @Override
     public void deactivateBooking(Long id) {
-        RoomBooking booking = bookingRepository.findById(id).orElse(null);
-        if (booking == null) return;
-
-        booking.setActive(false);
-        bookingRepository.save(booking);
+        RoomBooking b = bookingRepository.findById(id).orElse(null);
+        if (b == null) return;
+        b.setActive(false);
+        bookingRepository.save(b);
     }
 
     @Override

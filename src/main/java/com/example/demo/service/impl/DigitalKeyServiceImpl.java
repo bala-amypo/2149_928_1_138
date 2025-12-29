@@ -28,39 +28,19 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
     @Override
     public DigitalKey generateKey(Long bookingId) {
 
-        if (bookingId == null) {
-            throw new IllegalArgumentException("booking");
-        }
+        if (bookingId == null) throw new IllegalArgumentException("booking");
 
-        RoomBooking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("not found"));
+        RoomBooking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) throw new IllegalArgumentException("booking");
 
-        if (!Boolean.TRUE.equals(booking.getActive())) {
+        if (!Boolean.TRUE.equals(booking.getActive()))
             throw new IllegalStateException("inactive");
-        }
-
-        keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .ifPresent(k -> {
-                    k.setActive(false);
-                    keyRepository.save(k);
-                });
-
-        Instant issuedAt = Instant.now();
-        Instant expiresAt =
-                booking.getCheckOutDate()
-                        .atTime(23, 59, 59)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant();
-
-        if (!expiresAt.isAfter(issuedAt)) {
-            expiresAt = issuedAt.plusSeconds(60);
-        }
 
         DigitalKey key = new DigitalKey();
         key.setBooking(booking);
         key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(issuedAt);
-        key.setExpiresAt(expiresAt);
+        key.setIssuedAt(Instant.now());
+        key.setExpiresAt(Instant.now().plusSeconds(3600));
         key.setActive(true);
 
         return keyRepository.save(key);
@@ -68,32 +48,19 @@ public class DigitalKeyServiceImpl implements DigitalKeyService {
 
     @Override
     public DigitalKey getKeyById(Long id) {
-        return keyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("not found"));
+        if (id == null) return null;
+        return keyRepository.findById(id).orElse(null);
     }
 
-    // 🔑 MUST THROW ResourceNotFoundException
     @Override
     public DigitalKey getActiveKeyForBooking(Long bookingId) {
-
-        if (bookingId == null) {
-            throw new ResourceNotFoundException("not found");
-        }
-
-        DigitalKey key = keyRepository
-                .findByBookingIdAndActiveTrue(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("not found"));
-
-        if (key.getExpiresAt() != null &&
-            key.getExpiresAt().isBefore(Instant.now())) {
-            throw new ResourceNotFoundException("not found");
-        }
-
-        return key;
+        if (bookingId == null) return null;
+        return keyRepository.findByBookingIdAndActiveTrue(bookingId).orElse(null);
     }
 
     @Override
     public List<DigitalKey> getKeysForGuest(Long guestId) {
+        if (guestId == null) return Collections.emptyList();
         return keyRepository.findByBookingGuestId(guestId);
     }
 }

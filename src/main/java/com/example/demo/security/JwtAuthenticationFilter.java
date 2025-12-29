@@ -1,107 +1,49 @@
-package com.example.demo.service.impl;
+package com.example.demo.security;
 
-import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.model.DigitalKey;
-import com.example.demo.model.RoomBooking;
-import com.example.demo.repository.DigitalKeyRepository;
-import com.example.demo.repository.RoomBookingRepository;
-import com.example.demo.service.DigitalKeyService;
-import org.springframework.stereotype.Service;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.time.Instant;
-import java.time.ZoneId;
+import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
-@Service
-public class DigitalKeyServiceImpl implements DigitalKeyService {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final DigitalKeyRepository keyRepository;
-    private final RoomBookingRepository bookingRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public DigitalKeyServiceImpl(DigitalKeyRepository keyRepository,
-                                 RoomBookingRepository bookingRepository) {
-        this.keyRepository = keyRepository;
-        this.bookingRepository = bookingRepository;
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
-    public DigitalKey generateKey(Long bookingId) {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-        if (bookingId == null) {
-            throw new IllegalArgumentException("Booking ID missing");
+        String header = request.getHeader("Authorization");
+
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            if (jwtTokenProvider.validateToken(token)) {
+                String email = jwtTokenProvider.getEmailFromToken(token);
+                String role = jwtTokenProvider.getRoleFromToken(token);
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                email,
+                                null,
+                                List.of(new SimpleGrantedAuthority(role)));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
 
-        RoomBooking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Booking not found"));
-
-        // ✅ REQUIRED: IllegalStateException WITH MESSAGE
-        if (!Boolean.TRUE.equals(booking.getActive())) {
-            throw new IllegalStateException("Booking is inactive");
-        }
-
-        // deactivate existing active key
-        keyRepository.findByBookingIdAndActiveTrue(bookingId)
-                .ifPresent(k -> {
-                    k.setActive(false);
-                    keyRepository.save(k);
-                });
-
-        Instant issuedAt = Instant.now();
-        Instant expiresAt =
-                booking.getCheckOutDate()
-                        .atTime(23, 59, 59)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant();
-
-        if (!expiresAt.isAfter(issuedAt)) {
-            expiresAt = issuedAt.plusSeconds(60);
-        }
-
-        DigitalKey key = new DigitalKey();
-        key.setBooking(booking);
-        key.setKeyValue(UUID.randomUUID().toString());
-        key.setIssuedAt(issuedAt);
-        key.setExpiresAt(expiresAt);
-        key.setActive(true);
-
-        return keyRepository.save(key);
-    }
-
-    @Override
-    public DigitalKey getKeyById(Long id) {
-        return keyRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Key not found"));
-    }
-
-    @Override
-public DigitalKey getActiveKeyForBooking(Long bookingId) {
-
-    if (bookingId == null) {
-        return null;
-    }
-
-    DigitalKey key = keyRepository
-            .findByBookingIdAndActiveTrue(bookingId)
-            .orElse(null);
-
-    if (key == null) {
-        return null;
-    }
-
-    if (key.getExpiresAt() != null &&
-        key.getExpiresAt().isBefore(Instant.now())) {
-        return null;
-    }
-
-    return key;
-}
-
-
-    @Override
-    public List<DigitalKey> getKeysForGuest(Long guestId) {
-        return keyRepository.findByBookingGuestId(guestId);
+        filterChain.doFilter(request, response);
     }
 }

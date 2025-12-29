@@ -43,9 +43,7 @@ public class AccessLogServiceImpl implements AccessLogService {
             throw new IllegalArgumentException("log");
         }
 
-        Instant now = Instant.now();
-
-        if (log.getAccessTime().isAfter(now)) {
+        if (log.getAccessTime().isAfter(Instant.now())) {
             throw new IllegalArgumentException("future");
         }
 
@@ -58,12 +56,10 @@ public class AccessLogServiceImpl implements AccessLogService {
         }
 
         DigitalKey key = keyRepo.findById(log.getDigitalKey().getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("key"));
 
         Guest guest = guestRepo.findById(log.getGuest().getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("guest"));
 
         log.setDigitalKey(key);
         log.setGuest(guest);
@@ -72,7 +68,7 @@ public class AccessLogServiceImpl implements AccessLogService {
             return deny(log, "inactive");
         }
 
-        if (key.getExpiresAt() != null && key.getExpiresAt().isBefore(now)) {
+        if (key.getExpiresAt() != null && key.getExpiresAt().isBefore(Instant.now())) {
             return deny(log, "expired");
         }
 
@@ -85,41 +81,25 @@ public class AccessLogServiceImpl implements AccessLogService {
                 key.getBooking().getGuest() != null &&
                 guest.getId().equals(key.getBooking().getGuest().getId());
 
-        boolean hasShare = false;
+        boolean shared = false;
 
         if (!isOwner) {
-            List<KeyShareRequest> shares =
-                    shareRepo.findBySharedWithId(guest.getId());
-
-            for (KeyShareRequest share : shares) {
-
-                if (share.getDigitalKey() == null ||
-                    share.getDigitalKey().getId() == null ||
-                    share.getShareStart() == null ||
-                    share.getShareEnd() == null) {
-                    continue;
-                }
-
-                boolean sameKey =
-                        share.getDigitalKey().getId().equals(key.getId());
-
-                boolean approved =
-                        "APPROVED".equals(share.getStatus());
-
-                boolean inWindow =
-                        !log.getAccessTime().isBefore(share.getShareStart()) &&
-                        !log.getAccessTime().isAfter(share.getShareEnd());
-
-                if (sameKey && approved && inWindow) {
-                    hasShare = true;
+            List<KeyShareRequest> shares = shareRepo.findBySharedWithId(guest.getId());
+            for (KeyShareRequest s : shares) {
+                if ("APPROVED".equals(s.getStatus()) &&
+                    s.getDigitalKey() != null &&
+                    s.getDigitalKey().getId().equals(key.getId()) &&
+                    !log.getAccessTime().isBefore(s.getShareStart()) &&
+                    !log.getAccessTime().isAfter(s.getShareEnd())) {
+                    shared = true;
                     break;
                 }
             }
         }
 
-        if (isOwner || hasShare) {
+        if (isOwner || shared) {
             log.setResult("SUCCESS");
-            log.setReason("access granted");
+            log.setReason("granted");
         } else {
             log.setResult("DENIED");
             log.setReason("unauthorized");

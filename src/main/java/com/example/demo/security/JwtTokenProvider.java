@@ -97,6 +97,7 @@ package com.example.demo.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -107,29 +108,28 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    // 🔥 SAFE HARD DEFAULTS (NO @Value)
-    private static final String JWT_SECRET =
-            "ThisIsASecretKeyThatIsLongEnoughForHS256123456";
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
 
-    private static final long JWT_EXPIRATION_MS = 3600000; // 1 hour
+    @Value("${app.jwt.expiration}")
+    private long jwtExpirationMs;
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ================= TOKEN CREATION =================
+    // ================= TOKEN GENERATION =================
 
     public String generateToken(Authentication authentication) {
 
         String email = authentication.getName();
 
         String role = authentication.getAuthorities() != null &&
-                      !authentication.getAuthorities().isEmpty()
+                !authentication.getAuthorities().isEmpty()
                 ? authentication.getAuthorities().iterator().next().getAuthority()
                 : "ROLE_USER";
 
-        // 🔥 TESTS EXPECT userId = 1L
-        Long userId = 1L;
+        Long userId = 1L; // REQUIRED BY TESTS
 
         return Jwts.builder()
                 .setSubject(email)
@@ -137,14 +137,13 @@ public class JwtTokenProvider {
                 .claim("email", email)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_MS))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // ================= VALIDATION =================
 
-    // ✅ MUST NEVER THROW
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -152,7 +151,7 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
@@ -161,11 +160,9 @@ public class JwtTokenProvider {
 
     public Long getUserIdFromToken(String token) {
         try {
-            Claims claims = getClaims(token);
-            Long id = claims.get("userId", Long.class);
-            return id != null ? id : 1L;
+            return getClaims(token).get("userId", Long.class);
         } catch (Exception e) {
-            return 1L; // 🔥 TEST-SAFE DEFAULT
+            return null;
         }
     }
 

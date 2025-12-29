@@ -1,11 +1,9 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.model.RoomBooking;
-import com.example.demo.repository.GuestRepository;
 import com.example.demo.repository.RoomBookingRepository;
 import com.example.demo.service.RoomBookingService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,12 +23,15 @@ public class RoomBookingServiceImpl implements RoomBookingService {
     @Override
     public RoomBooking createBooking(RoomBooking booking) {
 
-        if (booking == null) throw new IllegalArgumentException("booking");
+        if (booking == null) {
+            throw new IllegalArgumentException("booking");
+        }
 
-        if (booking.getCheckInDate() == null ||
-            booking.getCheckOutDate() == null ||
-            !booking.getCheckInDate().isBefore(booking.getCheckOutDate())) {
-            throw new IllegalArgumentException("date");
+        LocalDate in = booking.getCheckInDate();
+        LocalDate out = booking.getCheckOutDate();
+
+        if (in == null || out == null || !in.isBefore(out)) {
+            throw new IllegalArgumentException("invalid");
         }
 
         booking.setActive(true);
@@ -45,16 +46,26 @@ public class RoomBookingServiceImpl implements RoomBookingService {
 
     @Override
     public RoomBooking updateBooking(Long id, RoomBooking update) {
-        RoomBooking b = bookingRepository.findById(id).orElse(null);
-        if (b == null) return null;
 
-        return bookingRepository.save(b);
+        if (id == null) {
+            throw new IllegalArgumentException("not found");
+        }
+
+        RoomBooking existing = bookingRepository.findById(id).orElse(null);
+        if (existing == null) {
+            throw new IllegalArgumentException("not found");
+        }
+
+        return bookingRepository.save(existing);
     }
 
     @Override
     public void deactivateBooking(Long id) {
+        if (id == null) return;
+
         RoomBooking b = bookingRepository.findById(id).orElse(null);
         if (b == null) return;
+
         b.setActive(false);
         bookingRepository.save(b);
     }
